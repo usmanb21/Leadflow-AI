@@ -1,0 +1,9 @@
+node_modules/
+venv/
+venv311/
+__pycache__/
+.DS_Store
+
+backend/uploads/
+backend/chroma_memory/
+memory_store/
