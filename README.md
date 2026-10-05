@@ -7,13 +7,19 @@ Search a city and sector, get registered AS companies from Enhetsregisteret, see
 Private MVP. Runs locally: FastAPI plus React.
 
 
-## Flow
+## How a pack is made
+
+1. You type a city and sector.
+2. Relista reads matching AS companies from Enhetsregisteret.
+3. The weekly pack keeps about 15, with a reason each row is included.
+4. You open one company, edit the draft, and send it yourself.
+5. You mark Sent, Replied, or Meeting. Relista does not send or detect replies.
 
 ```mermaid
-flowchart LR
-  A[City and sector] --> B[Enhetsregisteret]
-  B --> C[Weekly pack of 15]
-  C --> D[Why included]
-  D --> E[Draft email]
-  E --> F[You send]
-  F --> G[Mark Sent, Replied, or Meeting]
+flowchart TB
+  A["1. City and sector"] --> B["2. Enhetsregisteret"]
+  B --> C["3. Weekly pack of about 15"]
+  C --> D["4. Why this company is included"]
+  D --> E["5. Draft from Brreg facts and your offer"]
+  E --> F["6. You review and send"]
+  F --> G["7. You record Sent, Replied, or Meeting"]
