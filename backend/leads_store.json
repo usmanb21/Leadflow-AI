@@ -1,0 +1,787 @@
+[
+  {
+    "company": "24SEVENOFFICE NORWAY AS",
+    "orgnr": "995251094",
+    "city": "OSLO",
+    "employees": 125,
+    "founded": "2010-02-19",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikle og selge 24SevenOffice system og levere tjenester knyttet til",
+      "dette. Selskapet driver også generell konsulentvirksomhet innen",
+      "internett, programvareutvikling, regnskap og økonomi, samt deltakelse",
+      "i annen næringsvirksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/995251094",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "4HUMAN QM365 AS",
+    "orgnr": "989298291",
+    "city": "OSLO",
+    "employees": 14,
+    "founded": "2006-01-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Fremstilling/salg av tjenester og løsninger innen områdene Miljø,",
+      "Kvalitet, HMS og Samfunnsansvar, og andre produkter som naturlig",
+      "faller sammen med dette, herunder å delta i andre selskaper med",
+      "lignende virksomhet, kjøp og salg av aksjer, eller på annen måte gjøre",
+      "seg interessert i andre selskaper."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/989298291",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "ACAMS AS",
+    "orgnr": "983903495",
+    "city": "OSLO",
+    "employees": 24,
+    "founded": "2001-10-26",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling, salg og leveranse av styrings- og overvåkingssystemer for",
+      "kontrolltårn på norske og utenlandske flyplasser, samt utstyr og",
+      "tjenester som hører til."
+    ],
+    "email": "mail@acams.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/983903495",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "ACCIGO AS",
+    "orgnr": "917441499",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2016-06-07",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Salg og rådgivning av administrasjonssystemer til næringsliv og",
+      "offentlig forvaltning og alt som skjer i forbindelse med dette,",
+      "herunder deltakelse i andre selskaper."
+    ],
+    "email": "post@accigo.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/917441499",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "ADDED VALUE IT AS",
+    "orgnr": "986171010",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2003-10-17",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Selskapets formål er å utvikle IT systemer, levere konsulenttjenester",
+      "og dertil knyttet virksomhet til finansnæringen",
+      " "
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/986171010",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "ADMINCONTROL AS",
+    "orgnr": "987992883",
+    "city": "OSLO",
+    "employees": 91,
+    "founded": "2005-03-08",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Selskapets formål er utvikling og salg av programvare og",
+      "forretningsvirksomhet som er naturlig i sammenheng med virksomheten."
+    ],
+    "email": "post@admincontrol.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/987992883",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "ADRA HOLDINGS AS",
+    "orgnr": "919610565",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2017-09-13",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Handel med og investering i fast eiendom, verdipapirer og andre",
+      "formuesobjekter, herunder deltakelse i andre selskaper med lignende",
+      "virksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/919610565",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "ADREGA AS",
+    "orgnr": "986276475",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2003-11-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Salg, support og utvikling av software og hva hermed står i",
+      "forbindelse."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/986276475",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "APERTURA AS",
+    "orgnr": "966988746",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "1993-07-06",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Handel, deltakelse i andre selskaper og alt som",
+      "står i forbindelse hermed."
+    ],
+    "email": "info@apertura.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/966988746",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "APX SYSTEMS AS",
+    "orgnr": "990208840",
+    "city": "OSLO",
+    "employees": 10,
+    "founded": "2006-08-24",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Salg og utvikling av logistikkløsninger samt løsninger for datafangst",
+      "og det som deri hører."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/990208840",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "AQUA ROSIM AS",
+    "orgnr": "984289898",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2002-01-08",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Investering i aksjer og andre finansielle eiendeler."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/984289898",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "AXIO GROUP AS",
+    "orgnr": "980858650",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "1999-06-30",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Å utvikle, produsere og selge utstyr for medisinske formål. Utvikling,",
+      "lisensiering og salg av datasimuleringsprogram, utstyr i denne",
+      "forbindelse, konsulentvirksomhet, samt investeringsaktivitet og alt",
+      "som naturlig faller inn under dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/980858650",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "AYFIE AS",
+    "orgnr": "981958608",
+    "city": "OSLO",
+    "employees": 12,
+    "founded": "2000-04-11",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Å utvikle og selge produkter og tjenester for håndtering av bedrifters",
+      "informasjon på internett og intranett både nasjonalt og",
+      "internasjonalt. Selskapet kan også eie aksjer iandre selskaper."
+    ],
+    "email": "info@ayfie.com",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/981958608",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "B&R HOLDING AS",
+    "orgnr": "926848089",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2021-01-28",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Drive virksomhet innenfor utvikling og investering i andre selskaper",
+      "og alt annet som står i forbindelse med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/926848089",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "B2S RESEARCH AS",
+    "orgnr": "983459013",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2001-05-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Selskapets virksomhet er konsulenttjenester, handel, erverv og drift",
+      "av eiendommer samt alt av derved står i forbindelse, herunder gjennom",
+      "aksjetegning eller på annen måte å delta i andre selskaper og foretak."
+    ],
+    "email": "dan@b2s.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/983459013",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BARLINÅSEN AS",
+    "orgnr": "929610172",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2022-07-03",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Rådgivningstjenester innen sportsbransjen samt drifting av nettside og",
+      "alt som naturlig hører til dette."
+    ],
+    "email": "post@sportsidioten.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/929610172",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BBL DATAKOMPETANSE AS",
+    "orgnr": "980557707",
+    "city": "OSLO",
+    "employees": 77,
+    "founded": "1999-01-07",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Tilby IT-løsninger, drift av IT-systemer, formidling av",
+      "forsikringsprodukter og drift av fordelsprogram, samt tilknyttet",
+      "virksomhet."
+    ],
+    "email": "datakompetanse@bbl.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/980557707",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BEEST SOFTWARE AS",
+    "orgnr": "815146972",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2015-03-03",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Tilby tjenester for digital real-time registrering, søk, validering,",
+      "eksport/import av kundedata og aktiviteter i naturlig forbindelse med",
+      "dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/815146972",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BILL KILL AS",
+    "orgnr": "917461732",
+    "city": "OSLO",
+    "employees": 7,
+    "founded": "2016-06-20",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Tilby betalingstjenesten pengeoverføring gjennom en felles digital",
+      "faktura formidlingsplattform med konsesjon som betalingsforetak og",
+      "digital markedsføring, samt virksomhet som naturlig hører med dette og",
+      "som er tillatt innenfor konsesjonen."
+    ],
+    "email": "hello@billkill.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/917461732",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BJR HOLDING AS",
+    "orgnr": "989205234",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2005-12-02",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Selskapets virksomhet er kjøp og salg av aksjer og andre verdipapirer,",
+      "samt virksomhet som står i forbindelse med dette, herunder annen",
+      "investeringsvirksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/989205234",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BLUEFRONT VII MIDCO AS",
+    "orgnr": "932975785",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2024-01-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Å investere i, eie og utvikle andre selskaper og alt som står i",
+      "forbindelse med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/932975785",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BOLIDE AS",
+    "orgnr": "889269332",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2005-12-21",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Investeringer i andre foretak og hva dermed er forbundet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/889269332",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BOON CONSULT AS",
+    "orgnr": "998924014",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2012-09-28",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utgivelse av programvare. Test og videresalg av utstyr tilknyttet",
+      "informasjonsteknologi. Investering i fast eiendom og verdipapir, samt",
+      "konsulentvirksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/998924014",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BORGEN ECKEY INGENIØRVERKSTEDET AS",
+    "orgnr": "977240220",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "1997-01-02",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Kommisjonssalg, utvikling, og salg av programvare,",
+      "import, utleie og salg av biler samt hva som",
+      "hermed står i forbindelse."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/977240220",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BRIDGE TECHNOLOGIES CO AS",
+    "orgnr": "987002808",
+    "city": "OSLO",
+    "employees": 38,
+    "founded": "2004-06-13",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling av programvare og maskinvare innen telecom, it og",
+      "kringkastning, salg av disse, samt annen virksomhet som naturlig",
+      "faller inn under dette inkludert investeringer i andre selskaper."
+    ],
+    "email": "info@bridgetech.tv",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/987002808",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "BRUCE NORWAY AS",
+    "orgnr": "924467495",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2019-12-18",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Medlemskap som kombinerer ulike treningstilbud og aktiviteter."
+    ],
+    "email": "line@bruce.app",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/924467495",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CALCULUS HOLDCO AS",
+    "orgnr": "934159462",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2024-09-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Å investere i og eie aksjer, finansielle instrumenter, både ved",
+      "egenkapital og gjeld, samt annen virksomhet som står i naturlig i",
+      "forbindelse med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/934159462",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CALCULUS NEWCO AS",
+    "orgnr": "934159527",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2024-09-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Å investere i og eie aksjer, finansielle instrumenter, både ved",
+      "egenkapital og gjeld, samt annen virksomhet som står i naturlig i",
+      "forbindelse med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/934159527",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CATILINA AS",
+    "orgnr": "968087967",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "1993-11-22",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Film- og videoproduksjon. Produksjon og oppdatering av multimedia",
+      "produkter, herunder Internett sider og digitale presentasjoner. Kjøp",
+      "og salg av aksjer samt andre investeringer."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/968087967",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CEREBRASCOPE AS",
+    "orgnr": "934324668",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2024-10-03",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Medisinsk teknologi og andre produkter/tjenester som naturlig hører",
+      "sammen med dette, herunder å delta i andre selskap med lignende",
+      "virksomhet, og kjøp og salg av aksjer eller på annen måte gjøre seg",
+      "interessert i andre selskap."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/934324668",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CIPHER AS",
+    "orgnr": "922955271",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2019-05-29",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utgivelse av annen programvare, telekommunikasjon,",
+      "programmeringstjenester."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/922955271",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CLOUD CONNECTION AS",
+    "orgnr": "983949150",
+    "city": "OSLO",
+    "employees": 112,
+    "founded": "2001-11-15",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Drive salg av dataprogrammer og konsulent, opplæring, support og",
+      "rådgivning innenfor økonomi, logistikk, CRM, lønn mv., samt virksomhet",
+      "som er naturlig forbundet med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/983949150",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CLOUD SOFTWARE GROUP NORWAY AS",
+    "orgnr": "984266898",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2002-02-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikle, produsere, levere og markedsføre programvare, utnytte",
+      "opphavsrett i forbindelse med datateknologi, tilby teknisk bistand i",
+      "forbindelse med programvare og dertil hørende virksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/984266898",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CLUE NORGE AS",
+    "orgnr": "825447342",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2020-07-23",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Handel med digitale medier, aksjer og eiendom."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/825447342",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CO-LAB AS",
+    "orgnr": "935324602",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2025-03-19",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikle, produsere og distribuere digitale læringsspill,",
+      "undervisningsplattformer og tilhørende teknologi for utdanningsformål.",
+      "Selskapet kan drive utvikling og salg av programvare og digitale",
+      "verktøy for interaktiv læring. Videre, kan selskapet tilby",
+      "konsulenttjenester innen utvikling av innovativt, pedagogisk",
+      "undervisningsmateriell. Selskapet kan på sikt investere i relaterte",
+      "virksomheter som opererer innen samme segment."
+    ],
+    "email": "markus.furseth@hotmail.com",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/935324602",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "COHESITY NORWAY AS",
+    "orgnr": "981646134",
+    "city": "OSLO",
+    "employees": 8,
+    "founded": "2000-02-28",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Handel og konsulentvirksomhet, eksempelvis i forbindelse med omsetning",
+      "av dataprogrammer, samt deltakelse i andre virksomheter gjennom",
+      "eierskap eller på annen måte."
+    ],
+    "email": "anders_lindqvist@symantec.com",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/981646134",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "COMMERCIAL BANKING APPLICATIONS AS",
+    "orgnr": "934615360",
+    "city": "OSLO",
+    "employees": 30,
+    "founded": "1983-11-25",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikle og selge IT-løsninger, herunder programmer, maskinutstyr,",
+      "konsulenttjenester og beslektede tjenester. Selskapet vil også gjøre",
+      "seg interessert i andre selskaper med økonomisk formål.",
+      " "
+    ],
+    "email": "cba@cba.no",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/934615360",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "COMPELLO AS",
+    "orgnr": "985206732",
+    "city": "OSLO",
+    "employees": 29,
+    "founded": "2002-12-09",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling av dataprogrammer for kommunikasjonsløsninger, fakturering,",
+      "økonomistyring og administrasjon, salg av tilhørende tjenester, samt",
+      "deltagelse i selskaper med lignende virksomhet."
+    ],
+    "email": "help@compello.com",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/985206732",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "COMPODIUM NORGE AS",
+    "orgnr": "932731053",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2023-12-08",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Salg av software, IT-service og naturlig tilhørende virksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/932731053",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CONAN HOLDCO AS",
+    "orgnr": "924462930",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2019-11-12",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Å investere i, eie og utvikle andre selskaper og alt som står i",
+      "forbindelse med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/924462930",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CONAN MIDCO AS",
+    "orgnr": "924462957",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2019-11-12",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Investere i, eie og utvikle andre selskaper og alt som står i",
+      "forbindelse med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/924462957",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CONCLUDE AS",
+    "orgnr": "913509161",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2014-04-01",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling og salg av programvare, samt annen virksomhet som naturlig",
+      "hører sammen med dette."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/913509161",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CONNECTMYAPPS AS",
+    "orgnr": "913244990",
+    "city": "OSLO",
+    "employees": 10,
+    "founded": "2014-01-31",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling av programvare og konsulenttjenester, samt alt hva som",
+      "dermed står i forbindelse."
+    ],
+    "email": "info@connectmyapps.com",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/913244990",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CONTRACTING AS",
+    "orgnr": "922352585",
+    "city": "OSLO",
+    "employees": 27,
+    "founded": "2019-02-26",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling og salg av dataprogramvare og databasesystemer, tilhørende",
+      "konsulenttjenester, samt delta i andre selskaper med lignende",
+      "virksomhet."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/922352585",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "COREMINE VITAE AS",
+    "orgnr": "983558526",
+    "city": "OSLO",
+    "employees": null,
+    "founded": "2001-06-08",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikle og selge IT-løsninger og konsulenttjenester, samt delta i",
+      "andre selskaper med et hvilket som helst formål."
+    ],
+    "email": "contact@coreminevitae.com",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/983558526",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CREAZA AS",
+    "orgnr": "991840354",
+    "city": "OSLO",
+    "employees": 5,
+    "founded": "2007-09-24",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling og salg av pedagogiske verktøyprogram til bruk i",
+      "grunnopplæringen i Europa."
+    ],
+    "email": "",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/991840354",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  },
+  {
+    "company": "CURRENT ECO AS",
+    "orgnr": "912901491",
+    "city": "OSLO",
+    "employees": 15,
+    "founded": "2013-12-10",
+    "nace": "58.290",
+    "nace_text": "Utgivelse av annen programvare",
+    "purpose": [
+      "Utvikling, produksjon og salg av lade- og måleteknologi relatert til",
+      "Smart Cities."
+    ],
+    "email": "post@current.eco",
+    "brreg_url": "https://data.brreg.no/enhetsregisteret/oppslag/enheter/912901491",
+    "saved_at": "2026-10-05T09:07:49.095522+00:00"
+  }
+]
