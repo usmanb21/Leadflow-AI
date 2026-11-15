@@ -46,13 +46,45 @@ const EMPTY_OFFER = {
 };
 
 const PACK_SIZE = 15;
-const NEEDS = ["Too generic", "Wrong company", "Wrong offer", "Too long", "Not sendable"];
+function companyDomain(lead) {
+  const site = String(lead.website || lead.hjemmeside || lead.url || "").trim();
+  if (site) return site.replace(/^https?:\/\//, "").split("/")[0];
+  const slug = String(lead.company || "")
+    .toLowerCase()
+    .replace(/\b(as|asa|ans|da|ba|sa)\b/g, "")
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 24);
+  return slug ? `${slug}.no` : "";
+}
+
+function CompanyMark({ lead }) {
+  const domain = companyDomain(lead);
+  const letters = String(lead.company || "?").slice(0, 2).toUpperCase();
+  if (!domain) {
+    return <span className="h-8 w-8 rounded-lg bg-blue-600/30 text-blue-200 text-xs grid place-items-center">{letters}</span>;
+  }
+  return (
+    <img
+      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+      alt=""
+      className="h-8 w-8 rounded-lg bg-white/10"
+      onError={(e) => { e.currentTarget.style.display = "none"; }}
+    />
+  );
+}
 
 function isShellCompany(lead) {
   const name = String(lead?.company || lead?.navn || "").toUpperCase();
   return /\b(HOLDCO|MIDCO|NEWCO|HOLDING|INVEST|INVESTMENT|EIENDOM|PROPERTY)\b/.test(name);
 }
 const STATUSES = ["Not reviewed", "Researching", "Ready to contact", "Contacted", "Skip"];
+const STATUS_LABEL = {
+  "Not reviewed": "New",
+  Researching: "Researching",
+  "Ready to contact": "Ready",
+  Contacted: "Contacted",
+  Skip: "Skip",
+};
 const OUTCOMES = ["Not recorded", "Sent", "Replied", "Meeting", "Not a fit"];
 
 function loadJson(key, fallback) {
@@ -87,8 +119,16 @@ function brregLink(lead) {
   return lead.brreg_url || `https://data.brreg.no/enhetsregisteret/oppslag/enheter/${lead.orgnr}`;
 }
 
+function siteLabel(lead) {
+  const raw = String(lead.website || lead.hjemmeside || "").trim();
+  if (!raw) return "";
+  return raw.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+}
+
 function emailStatus(lead) {
-  return lead.email ? lead.email : "No official email published";
+  if (lead.email) return lead.email;
+  const site = siteLabel(lead);
+  return site ? `No public email found. Site: ${site}` : "No public email found";
 }
 
 function emailQuality(lead) {
@@ -129,26 +169,33 @@ function outcomeLabel(map, orgnr) {
 
 function emailNotice(lead) {
   const q = emailQuality(lead);
-  if (q === "None") return "No official email published. Relista does not invent or guess contacts.";
-  if (q === "Weak") return "Shared company inbox. This address is published for the company, not a named contact. Draft only — review the recipient and message before sending.";
-  return "Published work email. Review the recipient and message before sending.";
+  const site = siteLabel(lead);
+  if (q === "None") {
+    return site
+      ? `No public email found in Brreg. Check ${site} for a named contact before sending. Relista does not invent or guess contacts.`
+      : "No public email found in Brreg. Relista does not invent or guess contacts.";
+  }
+  if (q === "Weak") return "Published company email (shared inbox pattern). Not a named decision-maker. Review before sending.";
+  return "Published company email from Brreg. Not verified for deliverability. Review before sending.";
 }
 
 function inclusionLine(lead, isNew) {
   const q = emailQuality(lead);
   const staff = Number(lead.employees || 0);
-  const bits = [naceLabel(lead), lead.city ? `${lead.city} registered address` : "registered address"];
-  if (staff >= 2 && staff <= 25) bits.push("Small team");
-  else if (staff) bits.push(`${staff} staff`);
-  if (q === "Good") bits.push("Official email published");
-  else if (q === "Weak") bits.push("Shared company inbox");
-  else bits.push("No official email published");
-  if (recentFounded(lead)) bits.push("Recently registered");
-  if (isNew) bits.push("New since last market check");
-  if (q === "None" && !recentFounded(lead) && !isNew) {
-    return { label: "Why review", text: "Registry match only · No official email published · No timing signal" };
-  }
-  return { label: "Why included", text: bits.join(" · ") };
+  const city = lead.city || "Norway";
+  const year = String(lead.founded || "").slice(0, 4);
+  const sector = naceLabel(lead) || "the selected sector";
+  const fact = [
+    `${city} registered`,
+    year ? `founded ${year}` : null,
+    staff ? `${staff} staff` : null,
+  ].filter(Boolean).join(", ");
+  const reach = q === "Good" ? "published company email" : q === "Weak" ? "shared inbox only" : "no public email found";
+  const match = isNew ? "New since the last market check." : "Matches the saved market.";
+  return {
+    label: "Why this company",
+    text: `${fact}. ${sector}. ${reach}. ${match}`,
+  };
 }
 
 function fitScore(lead) {
@@ -192,10 +239,10 @@ function fitDetail(lead) {
   else if (age <= 8) score += 10;
   else if (age <= 15) score += 4;
   else score -= 6;
-  let emailNote = "no official email published";
+  let emailNote = "no public email found";
   if (q === "Good") {
     score += 18;
-    emailNote = "official email published";
+    emailNote = "published company email";
   } else if (q === "Weak") {
     score += 4;
     emailNote = "shared inbox published";
@@ -205,7 +252,7 @@ function fitDetail(lead) {
   if (age != null && age <= 1) now = "Newly registered — early-stage (" + y + ")";
   else if (age != null && age <= 3) now = "Young company — early-stage (" + y + ")";
   else if (q === "Good" && staff >= 2 && staff <= 12) now = "Small team — reachable (" + staff + ")";
-  else if (q === "Good") now = "Official email — reachable";
+  else if (q === "Good") now = "Published company email — reachable";
   else if (q === "Weak") now = "Shared inbox — review before send";
   else if (staff >= 2 && staff <= 12) now = "Small team — no official email";
   const bits = [sizeNote, y ? "founded " + y : "founded year unknown", emailNote];
@@ -301,6 +348,7 @@ export default function LeadsPage() {
   const [voteReason, setVoteReason] = useState("");
   const [comment, setComment] = useState("");
   const [newIds, setNewIds] = useState([]);
+  const [intel, setIntel] = useState(null);
   const [saved, setSaved] = useState(() => loadJson("relista_saved", {}));
   const [statusMap, setStatusMap] = useState(() => loadJson("relista_status", {}));
   const [outcomeMap, setOutcomeMap] = useState(() => loadJson("relista_outcome", {}));
@@ -539,6 +587,7 @@ export default function LeadsPage() {
     setVoteReason("");
     setComment("");
     setCopied("");
+    setIntel(null);
   };
 
   const openLead = async (lead) => {
@@ -551,6 +600,7 @@ export default function LeadsPage() {
     setKind("");
     setVote("");
     setVoteReason("");
+    setIntel(null);
     try {
       const res = await fetch(`${API}/leads/${lead.orgnr}`);
       const data = await res.json();
@@ -601,6 +651,33 @@ export default function LeadsPage() {
     } catch {
       setModell("Draft failed.");
       setKind("draft");
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const runIntelligence = async () => {
+    if (!open?.orgnr) return;
+    setBusy("intel");
+    setIntel(null);
+    try {
+      await saveOffer();
+      const lang = String(offer.lang || "English").toLowerCase().startsWith("nor") ? "nb" : "en";
+      const res = await fetch(`${API}/leads/${open.orgnr}/intelligence`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language: lang }),
+      });
+      if (!res.ok) throw new Error("intel failed");
+      const data = await res.json();
+      setIntel(data.intelligence || null);
+    } catch {
+      setIntel({
+        error: true,
+        rationale: "Intelligence failed. Try again.",
+        drafts: [],
+        priority_score: 0,
+      });
     } finally {
       setBusy("");
     }
@@ -708,25 +785,14 @@ export default function LeadsPage() {
         <div className="flex justify-between items-start gap-3 mb-3">
           <div>
             <h2 className="text-xl font-semibold">{listMode === "pack" ? "This week's work pack" : title}</h2>
-            <p className="text-sm text-gray-400 mt-1">
-              Each row is an AS retrieved from Brreg that matches the current saved market rules.
-            </p>
+            <p className="text-sm text-gray-400 mt-1">Search a city and sector. Open a company. Review the draft.</p>
             <p className="text-sm text-gray-400">
               {listMode === "pack"
-                ? `${visible.length} of ${PACK_SIZE} in this week's pack`
-                : `${searchMeta.total || visible.length} in the current matching market${visible.length ? ` | Showing 1-${visible.length}` : ""}`}
-            </p>
-            <p className="text-sm text-gray-400">
-              New since last market check: {newIds.length} | Not reviewed: {statusNewCount} | {readyCount} ready to contact
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              New since last check means this organisation matches the saved market now but was not in the previous saved-market snapshot.
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {searchMeta.form || "AS"} | Registered business address | Configured software NACE codes | municipality match
+                ? `${visible.length} of ${PACK_SIZE} in this week's pack · ranked by email quality, staff band, then company age (profile fit, not buying intent)`
+                : `${searchMeta.total || visible.length} companies${visible.length ? ` · showing ${visible.length}` : ""}`}
             </p>
             {retrievedAt && !searchError && (
-              <p className="text-xs text-green-400 mt-0.5">Live Brreg search | Retrieved just now</p>
+              <p className="text-xs text-green-400 mt-0.5">Source: Brønnøysundregistrene (Enhetsregisteret){retrievedAt ? ` · retrieved ${new Date(retrievedAt).toLocaleString()}` : ""}</p>
             )}
           </div>
           <div className="flex gap-2 shrink-0">
@@ -799,15 +865,8 @@ export default function LeadsPage() {
           ))}
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
-          {chip("new", `New since last market check: ${newIds.length}`)}
           {chip("statusNew", `Not reviewed: ${statusNewCount}`)}
-          {chip("researching", `Researching: ${researchingCount}`)}
           {chip("ready", `Ready: ${readyCount}`)}
-          {chip("contacted", `Contacted: ${contactedCount}`)}
-          {chip("skip", `Skip: ${skipCount}`)}
-          {chip("saved", `Saved: ${savedCount}`)}
-          {chip("sent", `Sent: ${sentCount}`)}
-          {chip("replied", `Replied: ${repliedCount}`)}
           {chip("meeting", `Meeting: ${meetingCount}`)}
           <button
             type="button"
@@ -934,29 +993,17 @@ export default function LeadsPage() {
           </label>
         </div>
 
-        <div className="overflow-auto max-h-[58vh] rounded-xl border border-white/10">
-          <table className="w-full text-sm table-fixed">
-            <colgroup>
-              <col className="w-[20%]" />
-              <col className="w-[9%]" />
-              <col className="w-[14%]" />
-              <col className="w-[7%]" />
-              <col className="w-[10%]" />
-              <col className="w-[14%]" />
-              <col className="w-[13%]" />
-              <col className="w-[13%]" />
-            </colgroup>
-            <thead className="text-gray-400 text-left sticky top-0 bg-[#0B1220] z-10">
+        <div className="overflow-auto max-h-[58vh] rounded-2xl border border-white/10 bg-[#0B1220]">
+          <table className="w-full text-sm">
+            <thead className="text-gray-400 text-left sticky top-0 bg-[#111827] z-10">
               <tr>
-                <th className="py-3 px-3">Company</th>
-                <th className="px-3">City</th>
-                <th className="px-3">Sector</th>
-                <th className="px-3">Staff</th>
-                <th className="px-3 whitespace-nowrap">Founded</th>
-                <th className="px-3 whitespace-nowrap">Email</th>
-                <th className="px-3">Status</th>
-                <th className="px-3">Outcome</th>
-                <th className="px-3">Actions</th>
+                <th className="py-3 px-4 w-[28%]">Company</th>
+                <th className="px-3 w-[10%]">Location</th>
+                <th className="px-3 w-[14%]">Sector</th>
+                <th className="px-3 w-[8%]">Staff</th>
+                <th className="px-3 w-[18%]">Email</th>
+                <th className="px-3 w-[18%]">Status</th>
+                <th className="px-3 w-[4%]"></th>
               </tr>
             </thead>
             <tbody>
@@ -964,64 +1011,40 @@ export default function LeadsPage() {
                 <tr
                   key={l.orgnr}
                   onClick={() => openLead(l)}
-                  className={`border-t border-white/10 cursor-pointer hover:bg-white/10 ${
-                    open?.orgnr === l.orgnr ? "bg-blue-600/20 border-l-2 border-l-blue-500" : ""
+                  className={`border-t border-white/10 cursor-pointer hover:bg-white/5 ${
+                    open?.orgnr === l.orgnr ? "bg-blue-600/15" : ""
                   }`}
                 >
-                  <td className="py-3 px-2 font-medium" title={`${l.company} — ${fitReason(l)}`}>
-                    <div className="truncate">
-                      {newIds.includes(l.orgnr) ? <span className="text-blue-300 mr-1">New</span> : null}
-                      {l.company}
+                  <td className="py-4 px-4 font-medium">
+                    <div className="flex items-center gap-3">
+                      <CompanyMark lead={l} />
+                      <div className="truncate" title={l.company}>{l.company}</div>
                     </div>
-                    <div className="text-[11px] text-gray-400 truncate">
-                      {inclusionLine(l, newIds.includes(l.orgnr)).label}: {inclusionLine(l, newIds.includes(l.orgnr)).text}
-                    </div>
+                    <div className="text-[11px] text-gray-500 truncate">{l.orgnr}</div>
                   </td>
-                  <td className="px-2 truncate" title={l.city}>{l.city}</td>
-                  <td className="px-2 truncate" title={naceVerify(l)}>{naceLabel(l)}</td>
-                  <td className="px-2">{l.employees ? l.employees : "-"}</td>
-                  <td className="px-3 whitespace-nowrap">{yearOf(l) || "-"}</td>
-                  <td className="px-3 truncate" title={l.email || "No official email published"}>
-                    {l.email ? `${l.email} (${emailQuality(l)})` : "No official email published"}
+                  <td className="px-3 truncate" title={l.city}>{l.city || "-"}</td>
+                  <td className="px-3 truncate" title={naceLabel(l)}>{naceLabel(l)}</td>
+                  <td className="px-3">{l.employees || "-"}</td>
+                  <td className="px-3 truncate text-gray-300" title={emailStatus(l)}>
+                    {l.email ? l.email : "No public email"}
                   </td>
-                  <td className="px-2" onClick={(event) => event.stopPropagation()}>
+                  <td className="px-3 py-3" onClick={(event) => event.stopPropagation()}>
                     <select
                       value={leadStatus(statusMap, l.orgnr)}
                       onChange={(event) => setLeadStatus(event, l, event.target.value)}
-                      className="bg-black/40 border border-white/10 rounded px-1 py-1 text-[11px] w-full max-w-full"
+                      className="bg-[#1f2937] text-white border border-white/20 rounded-lg px-2 py-1.5 text-xs w-[7.5rem] cursor-pointer"
                     >
                       {STATUSES.map((s) => (
-                        <option key={s}>{s}</option>
+                        <option key={s} value={s}>{STATUS_LABEL[s]}</option>
                       ))}
                     </select>
                   </td>
-                  <td className="px-2" onClick={(event) => event.stopPropagation()}>
-                    <select
-                      value={outcomeRecord(outcomeMap, l.orgnr).value}
-                      title={outcomeLabel(outcomeMap, l.orgnr)}
-                      onChange={(event) => setLeadOutcome(event, l, event.target.value)}
-                      className="bg-black/40 border border-white/10 rounded px-1 py-1 text-[11px] w-full max-w-full"
-                    >
-                      {OUTCOMES.map((s) => (
-                        <option key={s}>{s}</option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-2 whitespace-nowrap">
+                  <td className="px-3" onClick={(event) => event.stopPropagation()}>
                     <button
                       type="button"
-                      className="text-blue-400 underline mr-2"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        window.open(brregLink(l), "_blank", "noopener,noreferrer");
-                      }}
-                    >
-                      Verify
-                    </button>
-                    <button
-                      type="button"
-                      className={saved[l.orgnr] ? "text-amber-300" : "text-gray-400"}
+                      className={saved[l.orgnr] ? "text-amber-300 text-base" : "text-gray-500 text-base"}
                       onClick={(event) => toggleSave(event, l)}
+                      title="Save company"
                     >
                       {saved[l.orgnr] ? "★" : "☆"}
                     </button>
@@ -1039,54 +1062,110 @@ export default function LeadsPage() {
       </div>
 
       {open && (
-        <aside className="w-[400px] shrink-0 border-l border-white/10 p-5 overflow-auto">
+        <aside className="w-[420px] shrink-0 border-l border-white/10 p-5 overflow-auto">
           <div className="flex justify-between items-start mb-2">
-            <div className="text-xs text-blue-300">BRREG | official</div>
-            <button type="button" onClick={closeDrawer} className="text-gray-400 text-sm">
-              Close
-            </button>
+            <div className="text-xs text-blue-300">BRREG · official</div>
+            <button type="button" onClick={closeDrawer} className="text-gray-400 text-sm">Close</button>
           </div>
-          <h3 className="text-lg font-semibold mb-1">{open.company}</h3>
-          <p className="text-xs text-gray-400 mb-1">Match to your offer</p>
-          <p className="text-sm text-white mb-1">
-            {inclusionLine(open, newIds.includes(open.orgnr)).label}: {inclusionLine(open, newIds.includes(open.orgnr)).text}
-          </p>
-          <p className="text-xs text-gray-400 mb-3">{fitWhy(open)}. Not buying intent.</p>
-          <p className="text-xs text-gray-400 mb-3">{emailNotice(open)}</p>
-          <div className="flex flex-wrap gap-2 mb-3 text-xs">
-            <span className="px-2 py-1 rounded-full bg-blue-600/30 text-blue-100">Official source</span>
-            <span className={`px-2 py-1 rounded-full ${open.email ? "bg-green-500/20 text-green-200" : "bg-white/10 text-gray-300"}`}>
-              {open.email ? (emailQuality(open) === "Good" ? "Published work email" : "Shared company inbox") : "No official email published"}
-            </span>
-            {newIds.includes(open.orgnr) ? <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-200">New since last market check</span> : null}
-            <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-200">{naceLabel(open)}</span>
-            {open.employees ? <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-200">{open.employees} staff</span> : null}
-            {yearOf(open) ? <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-200">Founded {yearOf(open)}</span> : null}
-            {recentFounded(open) ? <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-200">Recently registered</span> : null}
+          <h3 className="text-lg font-semibold mb-3">{open.company}</h3>
+
+          <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-3 mb-3">
+            <div className="text-xs uppercase tracking-wide text-blue-200 mb-1">Why this company</div>
+            <p className="text-sm text-white">{inclusionLine(open, newIds.includes(open.orgnr)).text}</p>
+            <p className="text-xs text-gray-400 mt-2">Official register facts only. Not buying intent.</p>
           </div>
-          <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 mb-4 text-sm text-gray-200">
-            <p className="mb-1">City {open.city}</p>
-            <p className="mb-1">Founded {open.founded || "-"}</p>
-            <p className="mb-1">Employees {open.employees ? open.employees : "-"}</p>
-            <p className="mb-1">Sector {naceLabel(open)}</p>
-            <p className="mb-1">{naceVerify(open)}</p>
-            <p className="mb-1 break-words whitespace-pre-wrap max-h-40 overflow-auto">
-              Official purpose (Norwegian)
-              <br />
-              {formatPurpose(open.purpose)}
-            </p>
-            <p className="mt-2 pt-2 border-t border-white/10">
-              Contact {emailStatus(open)}
-            </p>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 mb-3 text-sm text-gray-200">
+            <div className="text-xs text-gray-400 mb-2">Brønnøysundregistrene · register facts{retrievedAt ? ` · retrieved ${new Date(retrievedAt).toLocaleString()}` : ""}</div>
+            <p>Org.nr {open.orgnr}</p>
+            <p>City {open.city || "-"}</p>
+            <p>Founded {open.founded || "-"}</p>
+            <p>Employees {open.employees || "Not available"}</p>
+            <p>Sector {naceLabel(open)}</p>
+            <p className="mt-2 pt-2 border-t border-white/10">Contact {emailStatus(open)}</p>
             <p className="text-xs text-gray-400 mt-1">{emailNotice(open)}</p>
+            <a href={brregLink(open)} target="_blank" rel="noreferrer" className="text-xs text-blue-300 mt-2 inline-block">Verify on Brreg</a>
           </div>
+
+          <button type="button" onClick={runIntelligence} className="w-full py-2.5 rounded-lg bg-blue-600 mb-2">
+            {busy === "intel" ? "Researching..." : "Generate intelligence"}
+          </button>
+          <button type="button" onClick={runDraft} className="w-full py-2 rounded-lg bg-white/10 text-sm mb-2">
+            {busy === "draft" ? "Writing draft..." : "Draft email"}
+          </button>
+          <button type="button" onClick={runNote} className="w-full py-2 rounded-lg bg-white/10 text-sm mb-3">
+            {busy === "note" ? "..." : "Note"}
+          </button>
+
+          {intel && !intel.error && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 mb-3">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="text-xs uppercase tracking-wide text-amber-200">AI interpretation — review before use</div>
+                <div className="text-sm font-semibold text-white">
+                  ICP match: {intel.icp_match || (Number(intel.priority_score) >= 0.67 ? "High" : Number(intel.priority_score) >= 0.4 ? "Medium" : "Low")}
+                </div>
+              </div>
+              {(intel.match_reasons || []).length > 0 && (
+                <ul className="text-xs text-gray-300 mb-2 list-disc pl-4 space-y-0.5">
+                  {intel.match_reasons.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-sm text-gray-100 mb-3">{intel.rationale}</p>
+              <div className="text-xs uppercase tracking-wide text-gray-400 mb-2">Suggested messages — review &amp; edit</div>
+              {(intel.drafts || []).map((d, i) => (
+                <div key={i} className="rounded-lg border border-white/10 bg-black/20 p-3 mb-2">
+                  {d.subject && <p className="text-xs text-blue-200 mb-1">{d.subject}</p>}
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap mb-2">{d.body}</p>
+                  <button
+                    type="button"
+                    onClick={() => copyText(`draft ${i + 1}`, d.subject ? `Subject: ${d.subject}\n\n${d.body}` : d.body)}
+                    className="text-xs px-2 py-1 rounded bg-white/10"
+                  >
+                    Copy draft
+                  </button>
+                </div>
+              ))}
+              {intel.research_notes && (
+                <p className="text-[11px] text-gray-500 mt-2">Notes: {intel.research_notes}</p>
+              )}
+              {intel.brreg_retrieved_at && (
+                <p className="text-[11px] text-gray-500 mt-1">Brreg context retrieved {new Date(intel.brreg_retrieved_at).toLocaleString()}</p>
+              )}
+            </div>
+          )}
+          {intel?.error && (
+            <p className="text-amber-300 text-sm mb-3">{intel.rationale}</p>
+          )}
+
+          {kind === "draft" && (
+            <p className="text-xs text-gray-500 mb-2">Draft from official facts and your offer. Relista does not send email.</p>
+          )}
+          <div className="text-xs uppercase tracking-wide text-amber-300 mb-2">
+            {kind === "note" ? "Generated from official facts" : "Draft — review before use"}
+          </div>
+          <textarea
+            value={modell}
+            onChange={(e) => setModell(e.target.value)}
+            rows={12}
+            className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 text-sm outline-none mb-3"
+          />
+          <div className="flex flex-wrap gap-2 mb-4 text-xs">
+            <button type="button" onClick={() => copyText("Text", modell)} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/10">Copy draft</button>
+            <button type="button" onClick={() => copyText("Facts", factsText(open))} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/10">Copy facts</button>
+            {kind === "draft" && (
+              <button type="button" onClick={runDraft} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/10">{busy === "draft" ? "..." : "Regenerate"}</button>
+            )}
+            {copied && <span className="text-green-300 self-center">Copied {copied}</span>}
+          </div>
+
+          <details className="mb-3 text-sm text-gray-300">
+            <summary className="cursor-pointer text-xs text-gray-400">Official purpose (Norwegian)</summary>
+            <p className="mt-2 break-words whitespace-pre-wrap max-h-32 overflow-auto">{formatPurpose(open.purpose)}</p>
+          </details>
+
           <div className="flex flex-wrap gap-2 mb-3 text-xs">
-            <a href={brregLink(open)} target="_blank" rel="noreferrer" className="text-blue-400">
-              Verify on Brreg
-            </a>
-            <button type="button" className="text-blue-400" onClick={() => copyText("Company", open.company)}>
-              Copy company name
-            </button>
             <button type="button" className="text-amber-300" onClick={(e) => toggleSave(e, open)}>
               {saved[open.orgnr] ? "★ Saved company" : "☆ Save this company"}
             </button>
@@ -1095,63 +1174,17 @@ export default function LeadsPage() {
               onChange={(event) => setLeadStatus(event, open, event.target.value)}
               className="bg-black/40 border border-white/10 rounded px-2 py-1 text-xs"
             >
-              {STATUSES.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
+              {STATUSES.map((s) => <option key={s}>{s}</option>)}
             </select>
             <select
               value={outcomeRecord(outcomeMap, open.orgnr).value}
               onChange={(event) => setLeadOutcome(event, open, event.target.value)}
               className="bg-black/40 border border-white/10 rounded px-2 py-1 text-xs"
             >
-              {OUTCOMES.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
+              {OUTCOMES.map((s) => <option key={s}>{s}</option>)}
             </select>
           </div>
-          <p className="text-xs text-gray-500 mb-2">Outcomes are recorded by you. Relista does not send email or automatically detect replies or meetings.</p>
-          {outcomeRecord(outcomeMap, open.orgnr).value !== "Not recorded" && (
-            <p className="text-xs text-gray-300 mb-2">{outcomeLabel(outcomeMap, open.orgnr)}</p>
-          )}
-          <div className="flex gap-2 my-4">
-            <button type="button" onClick={runNote} className="flex-1 py-2 rounded-lg bg-white/10">
-              {busy === "note" ? "..." : "Note"}
-            </button>
-            <button type="button" onClick={runDraft} className="flex-1 py-2 rounded-lg bg-blue-600">
-              {busy === "draft" ? "..." : "Draft email"}
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 mb-3 text-xs">
-            <button type="button" onClick={() => copyText("Facts", factsText(open))} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/10">
-              Copy facts
-            </button>
-            <button type="button" onClick={() => copyText("Text", modell)} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/10">
-              Copy text
-            </button>
-            {kind === "draft" && (
-              <button type="button" onClick={runDraft} className="px-3 py-1.5 rounded-lg border border-white/15 bg-white/10">
-                {busy === "draft" ? "..." : "Regenerate"}
-              </button>
-            )}
-            {copied && <span className="text-green-300 self-center">Copied {copied}</span>}
-          </div>
-          {kind === "draft" && (
-            <p className="text-xs text-gray-500 mb-2">
-              This is a draft based on official company facts and your offer. Review the recipient, relevance, wording, and whether contact is appropriate before sending. Relista does not send email.
-            </p>
-          )}
-          {kind === "draft" && open.purpose && (
-            <p className="text-xs text-gray-500 mb-2">Official purpose is shown in the drawer — not copied into the email.</p>
-          )}
-          <div className="text-xs uppercase tracking-wide text-amber-300 mb-2">
-            {kind === "note" ? "Generated from official facts" : "AI DRAFT - REVIEW BEFORE USE"}
-          </div>
-          <textarea
-            value={modell}
-            onChange={(e) => setModell(e.target.value)}
-            rows={14}
-            className="w-full bg-amber-500/5 border border-amber-500/20 rounded-xl p-3 text-sm outline-none"
-          />
+          <p className="text-xs text-gray-500 mb-2">Outcomes are recorded by you. Relista does not send email.</p>
           {kind === "draft" && modell && (
             <div className="mt-4 text-sm">
               <p className="text-gray-200 mb-3 text-base">Would you send this after one edit?</p>
@@ -1204,4 +1237,5 @@ export default function LeadsPage() {
     </div>
   );
 }
+
 

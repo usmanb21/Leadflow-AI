@@ -6,21 +6,24 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import routes
 from file_routes import router as file_router
 from chat_routes import router as chat_router
+from intelligence_routes import router as intelligence_router
 
 app = FastAPI(title="NextGen AI Agent 🤖")
 
-# Allow frontend (React/Next.js) to communicate with backend
+# Allow frontend (React/Vite) to communicate with backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # you can restrict to ["http://localhost:5173"] if you want
+    allow_origins=["http://localhost:5173", "http://localhost:5175"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
 )
 
 # Register route files
 app.include_router(file_router)
 app.include_router(chat_router)
+app.include_router(intelligence_router)
+
 
 @app.get("/")
 def home():
