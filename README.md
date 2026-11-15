@@ -8,29 +8,13 @@ Private MVP. Runs locally: FastAPI plus React.
 
 
 ```mermaid
-flowchart LR
-  subgraph In["Input"]
-    A[City + sector]
-  end
-
-  subgraph Data["Official data"]
-    B[Enhetsregisteret]
-    C[Pack of ~15<br/>ranked by fit]
-  end
-
-  subgraph Review["Company drawer"]
-    D[Brreg facts]
-    E[Email: published / shared / none]
-    F[ICP match High · Med · Low]
-  end
-
-  subgraph Out["You act"]
-    G[Edit + copy draft]
-    H[Send yourself]
-    I[Status + CSV]
-  end
-
-  A --> B --> C --> D --> E --> F --> G --> H --> I
+flowchart TB
+  A[City + sector search] --> B[Live Enhetsregisteret results]
+  B --> C[Weekly pack of ~15 · ranked by fit]
+  C --> D[Open company · Brreg facts + email label]
+  D --> E[Intelligence · ICP High / Medium / Low]
+  E --> F[Edit draft · copy · you send]
+  F --> G[Status + outcome + CSV export]
 ```
 
 **Trust rules:** Brreg only · no invented contacts · AI is interpretation not fact · Relista never sends email.
