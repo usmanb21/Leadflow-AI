@@ -8,14 +8,23 @@ Relista does not send email and does not invent contacts.
 
 ## How it works
 
-```mermaid
-flowchart TD
-    A["01 · Select market<br/>City + sector"] --> B["02 · Discover<br/>Brønnøysund data"]
-    B --> C["03 · Build pack<br/>~15 companies"]
-    C --> D["04 · Rank<br/>Prospect fit"]
-    D --> E["05 · Evaluate<br/>Company intelligence"]
-    E --> F["06 · Prepare<br/>Review drafts · you send"]
-```
+flowchart LR
+    A["01<br/>Select market<br/>City + sector"]
+    B["02<br/>Discover<br/>Live Brønnøysund data"]
+    C["03<br/>Build pack<br/>~15 companies"]
+    D["04<br/>Rank<br/>Prospect fit"]
+    E["05<br/>Evaluate<br/>Company intelligence"]
+    F["06<br/>Prepare<br/>Review & outreach drafts"]
+
+    A --> B --> C --> D --> E --> F
+
+    classDef start fill:#172554,stroke:#60A5FA,color:#FFFFFF,stroke-width:2px
+    classDef process fill:#1E293B,stroke:#64748B,color:#FFFFFF,stroke-width:1.5px
+    classDef finish fill:#064E3B,stroke:#34D399,color:#FFFFFF,stroke-width:2px
+
+    class A start
+    class B,C,D,E process
+    class F finish
 
 ## Core capabilities
 
