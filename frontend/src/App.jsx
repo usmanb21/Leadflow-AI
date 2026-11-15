@@ -28,6 +28,20 @@ const CITIES = [
   { label: "Hamar", q: "Hamar, programvare" },
 ];
 
+function WorkingMark() {
+  return (
+    <span className="inline-flex items-center gap-1.5 h-5" aria-label="Thinking">
+      <span className="h-1.5 w-1.5 rounded-full bg-blue-300/80 animate-pulse" />
+      <span className="h-1.5 w-1.5 rounded-full bg-blue-300/80 animate-pulse" style={{ animationDelay: "140ms" }} />
+      <span className="h-1.5 w-1.5 rounded-full bg-blue-300/80 animate-pulse" style={{ animationDelay: "280ms" }} />
+    </span>
+  );
+}
+
+function StreamCaret() {
+  return <span className="ml-0.5 inline-block h-4 w-[2px] translate-y-[2px] bg-blue-300 animate-pulse" />;
+}
+
 function isShellCompany(lead) {
   const name = String(lead?.company || lead?.navn || "").toUpperCase();
   return /\b(HOLDCO|MIDCO|NEWCO|HOLDING|INVEST|INVESTMENT|EIENDOM|PROPERTY)\b/.test(name);
@@ -87,21 +101,28 @@ function loadJsonSafe(key, fallback) {
   }
 }
 
-function DashboardHome({ markets, lastQ, homeQ, setHomeQ, pickCity, createFirstMarket, runHomeSearch, openLeads }) {
-  const [focusQ, setFocusQ] = useState("Oslo, programvare");
+function DashboardHome({ markets, homeQ, setHomeQ, runHomeSearch, openLeads, setPage }) {
+  const [focusQ, setFocusQ] = useState(() => localStorage.getItem("leadflow_q") || "Oslo, programvare");
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const savedMarkets = loadJsonSafe("relista_markets", []);
   const statusMap = loadJsonSafe("relista_status", {});
   const saved = loadJsonSafe("relista_saved", {});
+  const city = (focusQ.split(",")[0] || "Oslo").trim();
+  const ready = Object.values(statusMap).filter((s) => s === "Ready to contact").length;
+  const savedCount = Object.keys(saved).filter((k) => saved[k]).length;
+  const withEmail = rows.filter((r) => r.email).length;
+  const marketList = (markets && markets.length ? markets : savedMarkets).slice(0, 5);
 
   useEffect(() => {
     let live = true;
-    const q = focusQ || "Oslo, programvare";
-    fetch(`${API}/search?q=${encodeURIComponent(q)}&page=0&size=50`)
+    setLoading(true);
+    fetch(`${API}/search?q=${encodeURIComponent(focusQ)}&page=0&size=20`)
       .then((r) => r.json())
       .then((data) => {
         if (!live) return;
-        const items = data.items || data.leads || [];
+        const items = (data.items || data.leads || []).filter((r) => !isShellCompany(r));
         setRows(items);
         setTotal(Number(data.total ?? items.length));
       })
@@ -109,149 +130,147 @@ function DashboardHome({ markets, lastQ, homeQ, setHomeQ, pickCity, createFirstM
         if (!live) return;
         setRows([]);
         setTotal(0);
+      })
+      .finally(() => {
+        if (live) setLoading(false);
       });
     return () => {
       live = false;
     };
   }, [focusQ]);
 
-  const ready = Object.values(statusMap).filter((s) => s === "Ready to contact").length;
-  const market = markets.find((m) => String(m.q).toLowerCase() === String(focusQ).toLowerCase());
-  const seen = market?.seen || loadJsonSafe(`relista_seen_${String(focusQ).toLowerCase()}`, []);
-  const newCount = seen.length ? rows.filter((r) => r.orgnr && !seen.includes(r.orgnr)).length : 0;
-  const scored = rows.map((r) => ({ ...r, fit: dashFit(r), quality: dashEmailQuality(r), status: statusMap[r.orgnr] === "New" || !statusMap[r.orgnr] ? "Not reviewed" : statusMap[r.orgnr] }));
-  const ranked = [...scored].filter((r) => !isShellCompany(r)).sort((a, b) => b.fit - a.fit);
-  const queue = ranked.slice(0, 15);
-  const reachable = queue.filter((r) => r.quality === "Good");
-  const topFitCount = reachable.length;
-  const pipe = {
-    New: Object.values(statusMap).filter((s) => s === "New").length || scored.filter((r) => r.status === "New").length,
-    Researching: Object.values(statusMap).filter((s) => s === "Researching").length,
-    Ready: ready,
-    Contacted: Object.values(statusMap).filter((s) => s === "Contacted").length,
-  };
+  const priority = [...rows]
+    .sort((a, b) => {
+      const ae = a.email ? 1 : 0;
+      const be = b.email ? 1 : 0;
+      if (be !== ae) return be - ae;
+      return Number(b.employees || 0) - Number(a.employees || 0);
+    })
+    .slice(0, 6);
 
   return (
-    <div className="h-full overflow-auto px-8 py-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold">This week's work pack</h1>
-            <select
-              value={focusQ}
-              onChange={(e) => setFocusQ(e.target.value)}
-              className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm"
-            >
-              {CITIES.map((c) => (
-                <option key={c.q} value={c.q}>{c.label}</option>
-              ))}
-              {markets.filter((m) => !CITIES.some((c) => c.q.toLowerCase() === String(m.q).toLowerCase())).map((m) => (
-                <option key={m.id || m.q} value={m.q}>{String(m.city || m.q).split(",")[0]}</option>
-              ))}
-            </select>
+    <div className="h-full overflow-auto px-8 py-10">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-end justify-between gap-4 mb-10">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-gray-400 mt-1">Weekly work from official Brreg data.</p>
           </div>
-          <span className="text-xs font-medium text-white bg-blue-600 px-3 py-1.5 rounded-full shadow-[0_0_16px_rgba(37,99,235,0.55)]">
-            Enhetsregisteret
-          </span>
-        </div>
-        <p className="text-sm text-gray-400 mb-2 max-w-3xl">
-          A weekly work pack for Norwegian B2B teams. It helps them find official companies worth reviewing, understand why each company matches, and prepare a first outreach draft they edit and send themselves.
-        </p>
-        <p className="text-xs text-gray-500 mb-4">Market → Weekly work pack → Review evidence → Draft email → Human sends → Record outcome</p>
-        <form onSubmit={runHomeSearch} className="flex gap-2 mb-2">
-          <input value={homeQ} onChange={(e) => setHomeQ(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))} placeholder="Oslo, programvare" className="flex-1 px-4 py-2 rounded-xl bg-white text-black outline-none" />
-          <button type="submit" className="px-4 py-2 rounded-xl bg-blue-600 text-sm">Find registered companies</button>
-        </form>
-        <p className="text-xs text-gray-500 mb-6">Each row is an AS retrieved from Brreg that matches the current saved market rules. Official Enhetsregisteret. No invented emails.</p>
-
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <button type="button" onClick={() => openLeads(focusQ, "ready")} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
-            <div className="flex justify-between text-xs text-gray-400 mb-2"><span>Ready to contact</span><span className="text-green-400">↗</span></div>
-            <div className="text-3xl font-semibold">{ready}</div>
-          </button>
-          <button type="button" onClick={() => openLeads(focusQ, "new")} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
-            <div className="flex justify-between text-xs text-gray-400 mb-2"><span>New since last market check</span><span className="text-blue-300">✦</span></div>
-            <div className="text-3xl font-semibold">{newCount} <span className="text-sm text-gray-400">in this market</span></div>
-          </button>
-          <button type="button" onClick={() => openLeads(focusQ, "high")} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
-            <div className="flex justify-between text-xs text-gray-400 mb-2"><span>Reachable now</span><span className="text-blue-200">◎</span></div>
-            <div className="text-3xl font-semibold">{topFitCount} <span className="text-sm text-gray-400">in this pack</span></div>
+          <button
+            type="button"
+            onClick={() => openLeads(focusQ, "all")}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-sm font-medium shrink-0"
+          >
+            Open work pack
           </button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-3 mb-6">
-          <div className="md:col-span-2 rounded-2xl border border-white/10 bg-white/5 p-5">
-            <p className="text-lg text-white mb-2">
-              {queue.length} companies in this week's work pack
-            </p>
-            <p className="text-sm text-gray-400 mb-4">
-              {newCount === 0 ? "No organisations are new since the last saved snapshot. The pack still contains companies worth reviewing." : `${newCount} new since last market check.`} {ready} ready to contact. Human send only.
-            </p>
-            <p className="text-xs text-gray-500 mb-4">New since last check means this organisation matches the saved market now but was not in the previous saved-market snapshot.</p>
-            <div className="flex flex-wrap gap-2">
-              {ready > 0 ? (
-                <button type="button" onClick={() => openLeads(focusQ, "ready")} className="px-3 py-1.5 rounded-lg bg-blue-600 text-sm">
-                  Work ready ({ready})
-                </button>
-              ) : (
-                <button type="button" onClick={() => openLeads(focusQ, "high")} className="px-3 py-1.5 rounded-lg bg-blue-600 text-sm">
-                  Review reachable
-                </button>
-              )}
-              <button type="button" onClick={() => openLeads(focusQ, "new")} className="px-3 py-1.5 rounded-lg bg-white/10 text-sm">See new companies</button>
+        <section className="rounded-2xl border border-white/10 bg-[#0B1220] px-6 py-5 mb-8">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-gray-500 mb-1">This week</div>
+              <div className="text-xl font-medium text-white">{city} software</div>
+              <p className="text-sm text-gray-400 mt-2">
+                {loading ? "Loading…" : `${total || rows.length} companies`}
+                {!loading && withEmail ? ` · ${withEmail} with official email` : ""}
+                {ready ? ` · ${ready} ready` : ""}
+                {savedCount ? ` · ${savedCount} saved` : ""}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => openLeads(focusQ, "ready")}
+                className="px-3 py-1.5 rounded-lg bg-white/10 text-sm"
+              >
+                Ready only
+              </button>
+              <button
+                type="button"
+                onClick={() => openLeads(focusQ, "high")}
+                className="px-3 py-1.5 rounded-lg bg-white/10 text-sm"
+              >
+                With email
+              </button>
             </div>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Market pulse</div>
-            <div className="font-medium mb-1">{String(market?.city || focusQ).split(",")[0]}</div>
-            <div className="text-2xl font-semibold">{total || market?.total || rows.length} matching companies</div>
-            <div className="text-sm text-green-400 mt-1">{newCount} new since last check</div>
-            {!markets.length && (
-              <button type="button" onClick={createFirstMarket} className="mt-3 px-3 py-1.5 rounded-lg bg-blue-600 text-sm">
-                Save this market
-              </button>
+        </section>
+
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs uppercase tracking-wide text-gray-500">Priority list</div>
+            <button type="button" onClick={() => openLeads(focusQ, "all")} className="text-xs text-gray-400 hover:text-white">
+              View all
+            </button>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-[#0B1220] overflow-hidden">
+            {loading && <p className="px-5 py-6 text-sm text-gray-500">Loading companies…</p>}
+            {!loading && !priority.length && (
+              <p className="px-5 py-6 text-sm text-gray-500">Search a market in Leads to fill this list.</p>
             )}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <div className="text-sm text-gray-400 mb-2">This week's work pack · {queue.length} companies</div>
-          <div className="space-y-2">
-            {queue.map((r) => (
-              <div key={r.orgnr} className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{r.company}</div>
-                  <div className="text-xs text-gray-400">{dashFitReason(r)}</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => openLeads(focusQ, "all", r.orgnr)}
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 text-sm shrink-0"
-                >
-                  {r.quality === "None" ? "Review company" : "Draft email"}
-                </button>
-              </div>
-            ))}
-            {!queue.length && <p className="text-sm text-gray-500">Search a market to fill this queue.</p>}
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <div className="h-1.5 rounded-full bg-white/10 overflow-hidden flex">
-            <div className="bg-blue-500" style={{ width: `${Math.max(8, pipe.New * 8)}%` }} />
-            <div className="bg-white/30" style={{ width: `${Math.max(8, pipe.Researching * 8)}%` }} />
-            <div className="bg-green-500" style={{ width: `${Math.max(8, pipe.Ready * 8)}%` }} />
-            <div className="bg-white/20" style={{ width: `${Math.max(8, pipe.Contacted * 8)}%` }} />
-          </div>
-          <div className="grid grid-cols-4 gap-2 text-center text-xs text-gray-400 mt-2">
-            {Object.entries(pipe).map(([k, v]) => (
-              <div key={k}>
-                <div className="text-white text-sm">{v}</div>
-                {k}
-              </div>
+            {priority.map((r, i) => (
+              <button
+                key={r.orgnr || i}
+                type="button"
+                onClick={() => openLeads(focusQ, "all", r.orgnr)}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left border-t border-white/5 first:border-t-0 hover:bg-white/[0.03]"
+              >
+                <span className="h-9 w-9 rounded-lg bg-white/5 text-gray-300 text-xs grid place-items-center shrink-0 overflow-hidden">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${String(r.company || "")
+                      .toLowerCase()
+                      .replace(/\b(as|asa|ans)\b/g, "")
+                      .replace(/[^a-z0-9]+/g, "")
+                      .slice(0, 24)}.no&sz=64`}
+                    alt=""
+                    className="h-9 w-9"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                  {(r.company || "?").slice(0, 2).toUpperCase()}
+                </span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm text-white truncate">{r.company}</span>
+                  <span className="block text-xs text-gray-500 mt-0.5">
+                    {r.city || city}
+                    {r.employees ? ` · ${r.employees} staff` : ""}
+                  </span>
+                </span>
+                <span className={`text-xs shrink-0 ${r.email ? "text-emerald-400/90" : "text-gray-500"}`}>
+                  {r.email ? "Official email" : "No email"}
+                </span>
+              </button>
             ))}
           </div>
-        </div>
+        </section>
+
+        {marketList.length > 0 && (
+          <section className="mb-10">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-3">Markets</div>
+            <div className="flex flex-wrap gap-2">
+              {marketList.map((m) => {
+                const id = m.id || m.q;
+                const label = m.name || m.q || "Market";
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setFocusQ(m.q || focusQ);
+                      openLeads(m.q || focusQ, "all");
+                    }}
+                    className="px-3 py-1.5 rounded-full border border-white/10 bg-white/5 text-sm text-gray-200 hover:border-white/20"
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        <p className="text-xs text-gray-500">Official Brreg data. You send the email.</p>
       </div>
     </div>
   );
@@ -263,6 +282,120 @@ function capFirst(text) {
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
+const SOURCE_LOGOS = {
+  bbc: "bbc.com",
+  reuters: "reuters.com",
+  "ap news": "apnews.com",
+  ap: "apnews.com",
+  "the guardian": "theguardian.com",
+  guardian: "theguardian.com",
+  "al jazeera": "aljazeera.com",
+  npr: "npr.org",
+  abc: "abc.net.au",
+  "abc news": "abcnews.go.com",
+  "the new york times": "nytimes.com",
+  nyt: "nytimes.com",
+  "financial times": "ft.com",
+  bloomberg: "bloomberg.com",
+  "nbc news": "nbcnews.com",
+  nbc: "nbcnews.com",
+  "al.com": "al.com",
+  "google news": "news.google.com",
+  "the times": "thetimes.com",
+  nrk: "nrk.no",
+  "the local norway": "thelocal.no",
+  "arctic today": "arctictoday.com",
+  techcrunch: "techcrunch.com",
+  aftenposten: "aftenposten.no",
+  vg: "vg.no",
+};
+
+function outletHref(name) {
+  const domain = SOURCE_LOGOS[String(name || "").toLowerCase()];
+  return domain ? `https://${domain}` : "";
+}
+
+function knownOutlets(text) {
+  const found = [];
+  const seen = new Set();
+  String(text || "").replace(/\(([^)]+)\)/g, (_, inside) => {
+    inside.split(/,| and /).forEach((part) => {
+      const name = part.trim();
+      const key = name.toLowerCase();
+      if (SOURCE_LOGOS[key] && !seen.has(key)) {
+        seen.add(key);
+        found.push(name);
+      }
+    });
+    return _;
+  });
+  return found;
+}
+
+function extractSources(text) {
+  return knownOutlets(text);
+}
+
+function bodyWithoutSources(text) {
+  return String(text || "")
+    .replace(/(?:^|\n)[-—]{2,}[\s\S]*$/i, "")
+    .replace(/(?:^|\n)#{0,3}\s*Sources\b[\s\S]*$/i, "")
+    .replace(/\n(?:BBC|Reuters|Bloomberg|AP News|The Guardian|The New York Times|Al Jazeera|Financial Times|NPR|ABC)(?:,\s*[A-Za-z .]+)+\.?\s*$/i, "")
+    .trim();
+}
+
+function SourceChip({ name }) {
+  const key = name.toLowerCase();
+  const domain = SOURCE_LOGOS[key];
+  const href = domain
+    ? `https://${domain}`
+    : `https://www.google.com/search?q=${encodeURIComponent(name + " news")}`;
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[11px] text-gray-100 hover:bg-white/20 align-middle mx-0.5">
+      {domain ? <img src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`} alt="" className="h-3.5 w-3.5 rounded-sm" /> : <span className="h-3.5 w-3.5 rounded-sm bg-white/20 inline-block" />}
+      {name}
+    </a>
+  );
+}
+
+function InlineText({ text }) {
+  const parts = String(text || "").split(/(\([^)]+\))/g);
+  return parts.map((part, i) => {
+    const m = part.match(/^\(([^)]+)\)$/);
+    if (m) {
+      const names = m[1].split(/,| and /).map((s) => s.trim()).filter(Boolean);
+      const known = names.filter((n) => SOURCE_LOGOS[n.toLowerCase()]);
+      if (known.length) {
+        return <span key={i}>{known.map((name) => <SourceChip key={name} name={name} />)}</span>;
+      }
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+function AnswerBody({ text }) {
+  const body = bodyWithoutSources(text);
+  return body.split("\n").map((line, i) => {
+    const clean = line.replace(/^#{1,6}\s*/, "").replace(/\*\*/g, "");
+    if (!clean.trim()) return null;
+    const heading = /^#{1,3}\s/.test(line) || /^\d+\.\s/.test(clean);
+    return (
+      <p key={i} className={`mb-2 text-sm leading-6 text-gray-100 ${heading ? "font-semibold text-base mt-3" : ""}`}>
+        <InlineText text={clean} />
+      </p>
+    );
+  });
+}
+
+function SourceCount({ text }) {
+  const names = knownOutlets(text);
+  if (!names.length) return null;
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {names.map((name) => <SourceChip key={name} name={name} />)}
+    </div>
+  );
+}
 function proseOnly(text) {
   return String(text || "")
     .replace(/```[\s\S]*?```/g, "")
@@ -880,7 +1013,7 @@ function App() {
     abortRef.current = controller;
     const history = messages.map((m) => ({ sender: m.sender, text: m.text }));
     setPage("chat");
-    setMessages((prev) => [...prev, { sender: "user", text: messageToSend }]);
+    setMessages((prev) => [...prev, { sender: "user", text: messageToSend }, { sender: "bot", text: "" }]);
     setLoading(true);
     try {
       const response = await fetch(`${API}/chat`, {
@@ -892,22 +1025,29 @@ function App() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let botText = "";
-      setMessages((prev) => [...prev, { sender: "bot", text: "" }]);
+      let shown = "";
       while (true) {
         if (controller.signal.aborted) break;
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (let i = 0; i < chunk.length; i += 2) {
+        botText += decoder.decode(value, { stream: true });
+        while (shown.length < botText.length) {
           if (controller.signal.aborted) break;
-          botText += chunk.slice(i, i + 2);
+          shown = botText.slice(0, shown.length + 2);
           setMessages((prev) => {
             const updated = [...prev];
-            updated[updated.length - 1] = { sender: "bot", text: botText };
+            updated[updated.length - 1] = { sender: "bot", text: shown };
             return updated;
           });
-          await new Promise((res) => setTimeout(res, 16));
+          await new Promise((res) => setTimeout(res, 18));
         }
+      }
+      if (shown !== botText) {
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { sender: "bot", text: botText };
+          return updated;
+        });
       }
     } catch (err) {
       if (err?.name !== "AbortError") {
@@ -930,24 +1070,31 @@ function App() {
   };
 
   const tabClass = (id) =>
-    `w-full flex items-center gap-3 text-left px-3 py-2 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500 ${page === id ? "bg-white/10 text-white" : "text-gray-300"}`;
+    `w-full flex items-center gap-3 text-left px-3 py-2.5 rounded-xl hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500 ${page === id ? "bg-blue-600/20 text-white border border-blue-500/30" : "text-gray-300 border border-transparent"}`;
 
   return (
     <div className="relative flex h-screen bg-[#070B16] text-white overflow-hidden">
-      <div className="relative z-10 w-72 bg-black/40 border-r border-white/10 p-4 flex flex-col">
-        <button type="button" onClick={goHome} className="mb-8 flex items-center gap-3 text-left focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg">
+      <div className="relative z-10 w-64 bg-[#0B1220] border-r border-white/10 p-4 flex flex-col">
+        <button type="button" onClick={goHome} className="mb-6 flex items-center gap-3 text-left focus:outline-none focus:ring-1 focus:ring-blue-500 rounded-lg">
           <LogoMark />
           <div>
             <h1 className="font-semibold text-lg leading-tight">Relista</h1>
-            <p className="text-gray-400 text-xs">Weekly work packs</p>
+            <p className="text-blue-200/80 text-[11px]">Norway company radar</p>
           </div>
         </button>
+        <p className="text-[11px] uppercase tracking-wide text-gray-500 px-3 mb-2">Work</p>
         <div className="space-y-1">
           <button type="button" onClick={goHome} className={tabClass("dashboard")}><HomeIcon /> Dashboard</button>
           <button type="button" onClick={() => setPage("leads")} className={tabClass("leads")}><ListIcon /> Leads</button>
+        </div>
+        <p className="text-[11px] uppercase tracking-wide text-gray-500 px-3 mt-5 mb-2">Tools</p>
+        <div className="space-y-1">
           <button type="button" onClick={() => setPage("uploads")} className={tabClass("uploads")}><FileIcon /> Uploads</button>
           <button type="button" onClick={() => setPage("chat")} className={tabClass("chat")}><ChatIcon /> Ask</button>
           <button type="button" onClick={() => setPage("settings")} className={tabClass("settings")}><GearIcon /> Settings</button>
+        </div>
+        <div className="mt-auto rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-gray-400">
+          Official Brreg data. You send the email.
         </div>
       </div>
       <div className="relative z-10 flex-1 min-w-0 h-full min-h-0 overflow-hidden flex flex-col">
@@ -978,9 +1125,9 @@ function App() {
                       <div className="text-sm font-medium mb-1">Summarise a document</div>
                       <div className="text-xs text-gray-400">Key points from an uploaded file.</div>
                     </button>
-                    <button type="button" onClick={() => sendMessage("Extract a business brief from the latest uploaded document, including facts and follow-up questions.")} className="h-full min-h-[104px] rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <button type="button" onClick={() => sendMessage("Build a practical business brief for a Norwegian B2B SaaS. Include customer, problem, offer, why now, pricing shape, risks, and the next three steps. Then ask one question to tailor it.")} className="h-full min-h-[104px] rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500">
                       <div className="text-sm font-medium mb-1">Build a business brief</div>
-                      <div className="text-xs text-gray-400">Facts and follow-up questions from a file.</div>
+                      <div className="text-xs text-gray-400">A practical starter brief, not a file request.</div>
                     </button>
                     <button type="button" onClick={() => sendMessage("What is the current time and weather in Oslo?")} className="h-full min-h-[104px] rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-blue-500">
                       <div className="text-sm font-medium mb-1">Check a location detail</div>
@@ -1013,12 +1160,18 @@ function App() {
               )}
               {messages.map((msg, i) => (
                 <div key={i} className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`relative max-w-[70%] px-5 py-3 rounded-2xl ${msg.sender === "user" ? "bg-[#15233D] border border-white/15 text-white" : "bg-[#121A2B] border border-white/10 text-gray-100"}`}>
-                    <div className="prose prose-invert prose-sm max-w-none">
-                      <ReactMarkdown components={{ pre: CodeBlock }}>
-                        {loading && i === messages.length - 1 && msg.sender === "bot" ? `${msg.text}▍` : msg.text}
-                      </ReactMarkdown>
+                  <div className={`relative w-full max-w-3xl px-5 py-3 rounded-2xl ${msg.sender === "user" ? "bg-[#15233D] border border-white/15 text-white" : "bg-[#121A2B] border border-white/10 text-gray-100"}`}>
+                    <div className="prose prose-invert prose-sm max-w-none break-words">
+                      {loading && i === messages.length - 1 && msg.sender === "bot" && !msg.text ? (
+                        <WorkingMark />
+                      ) : (
+                        <div className="whitespace-pre-wrap text-sm leading-6 text-gray-100">
+                          {msg.text}
+                          {loading && i === messages.length - 1 && msg.sender === "bot" && <StreamCaret />}
+                        </div>
+                      )}
                     </div>
+                    {msg.sender === "bot" && !(loading && i === messages.length - 1) && <SourceCount text={msg.text} />}
                     {msg.sender === "bot" && msg.text && !(loading && i === messages.length - 1) && (
                       <div className="relative flex items-center gap-1 mt-3 pt-2 text-gray-400">
                         <button type="button" onClick={() => copyAll(proseOnly(msg.text), `copy-${i}`)} className="p-1.5 rounded hover:bg-white/10" title="Copy">
@@ -1052,12 +1205,10 @@ function App() {
         ) : (
           <DashboardHome
             markets={markets}
-            lastQ={lastQ}
             homeQ={homeQ}
             setHomeQ={setHomeQ}
-            pickCity={pickCity}
-            createFirstMarket={createFirstMarket}
             runHomeSearch={runHomeSearch}
+            setPage={setPage}
             openLeads={(q, view, orgnr) => {
               localStorage.setItem("leadflow_q", q);
               localStorage.setItem("leadflow_run", "1");

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -39,9 +40,17 @@ WEB_HINTS = (
     "check their", "check the site", "open the site", "look up the site",
     "visit", "migrationsverket",
 )
+NEWS_HINTS = (
+    "news", "current affairs", "current affair", "headline", "headlines",
+    "latest", "what happened", "what's happening", "whats happening",
+    "today in", "breaking", "live update", "live updates", "situation",
+    "political", "politics", "geopolitic", "geopolitical", "election",
+    "policy", "conflict", "crisis", "war", "immigration", "government",
+    "protest", "sanctions", "diplomacy",
+)
 WEATHER_HINTS = (
     "weather", "temperature", "forecast", "rain", "snow", "outside",
-    "vÃ¦r", "temperatur", "climate",
+    "vær", "temperatur", "climate",
 )
 ABBR = {
     "pak": "Pakistan",
@@ -128,7 +137,7 @@ def _write(system: str, user: str) -> str:
 def _purpose_short(lead: dict[str, Any]) -> str:
     raw = _as_text(lead.get("purpose") or lead.get("nace_text"))
     raw = raw.replace(" ,", ",")
-    for cut in ("sÃ¥ vel som", "vel som", "samt", "deltakelse", "som naturlig"):
+    for cut in ("så vel som", "vel som", "samt", "deltakelse", "som naturlig"):
         i = raw.lower().find(cut)
         if i > 8:
             raw = raw[:i]
@@ -192,26 +201,50 @@ DRAFT_RULES = (
 )
 
 
-def _help_line(offer: dict[str, str]) -> str:
-    who = offer.get("who") or "Norwegian B2B SaaS teams"
-    outcome = offer.get("outcome") or "build a verified prospect list faster"
-    outcome = outcome.rstrip(".")
-    if outcome.lower().startswith("they "):
-        outcome = outcome[5:]
-    return f"I help {who} {outcome} using official company data."
+def _one_fact(lead: dict[str, Any]) -> str:
+    short = _short_name(lead)
+    city = _as_text(lead.get("city")).title()
+    purpose = (_purpose_short(lead) or "").strip().rstrip(".")
+    year = (_as_text(lead.get("founded")) or "")[:4]
+    staff = lead.get("employees")
+    parts = []
+    if city:
+        parts.append(f"registered in {city}")
+    if purpose:
+        parts.append(f"within {purpose}")
+    if parts:
+        line = f"{short} is " + " ".join(parts)
+    else:
+        line = f"{short} is a registered Norwegian company"
+    if year.isdigit():
+        line += f" and was established in {year}"
+    line += "."
+    if staff not in (None, "", 0, "0"):
+        line += f" The register lists {staff} employees."
+    return line
 
 
-def _relevance_line(offer: dict[str, str]) -> str:
-    why = (offer.get("why") or "").strip()
-    if why and not re.search(
-        r"enhetsregisteret|search table|clients|partners|leads|grow",
-        why,
-        re.I,
-    ):
-        first = why.split(".")[0].strip().rstrip(".")
-        if 20 < len(first) < 180:
-            return f"{first}. Based on your registered activity, I thought this might be relevant."
-    return "Based on your registered activity, I thought this might be relevant."
+def _relevance_line(lead: dict[str, Any], offer: dict[str, str]) -> str:
+    who = (offer.get("who") or "Norwegian B2B teams").rstrip(".")
+    why = (offer.get("why") or offer.get("outcome") or "a shorter way to build a verified company list").rstrip(".")
+    city = _as_text(lead.get("city")).title() or "this city"
+    staff = lead.get("employees")
+    size = f"{staff} staff" if staff not in (None, "", 0, "0") else "staff count not published"
+    return (
+        f"It is on this list because it matches a {city} search for {who}: {size}. "
+        f"{why}."
+    )
+
+
+def _cta_line(lead: dict[str, Any], offer: dict[str, str]) -> str:
+    cta = (offer.get("cta") or "").strip()
+    weak = not cta or re.search(r"walkthrough|offer a |15 minutes|i can run", cta, re.I)
+    if not weak:
+        return cta if cta.endswith("?") else cta.rstrip(".") + "?"
+    city = _as_text(lead.get("city")).title()
+    if city:
+        return f"Would it be useful if I showed you a short {city} list in this sector?"
+    return "Would it be useful if I showed you a short list in this sector?"
 
 
 def _offer_map(pager: str) -> dict[str, str]:
@@ -238,22 +271,12 @@ def _offer_map(pager: str) -> dict[str, str]:
 
 
 def _noticed(lead: dict[str, Any]) -> str:
-    short = _short_name(lead)
-    city = _as_text(lead.get("city")).title()
-    purpose = _purpose_short(lead).lower()
-    article = "an" if city[:1].lower() in "aeiou" else "a"
-    if city and purpose:
-        return f"I noticed that {short} is {article} {city}-based company working with {purpose}."
-    if city:
-        return f"I noticed that {short} is {article} {city}-based company."
-    if purpose:
-        return f"I noticed that {short} works with {purpose}."
-    return f"I noticed that {short} is a registered Norwegian company."
+    return _one_fact(lead)
 
 
 def _http_json(url: str) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": "Relista/1.0"})
-    with urllib.request.urlopen(req, timeout=10, context=_SSL) as resp:
+    with urllib.request.urlopen(req, timeout=5, context=_SSL) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -262,30 +285,52 @@ def _normalize_place(place: str) -> str:
     return " ".join(ABBR.get(w.lower(), w) for w in words if w)
 
 
-def _places_from_message(msg: str) -> list[str]:
+STOP_PLACES = {
+    "weather", "forecast", "temperature", "temperatur", "vaar", "vær",
+    "outside", "today", "now", "current", "location", "time", "date",
+    "climate", "tell", "me", "both", "please",
+}
+
+
+def _places_from_message(msg: str, history: list | None = None) -> list[str]:
     low = msg.lower().strip()
+    about = re.search(r"(?:what about|how about|and|also)\s+(?:in\s+)?([a-z][a-z .'-]{1,40})", low)
+    if about:
+        place = _normalize_place(re.sub(r"[?.!].*$", "", about.group(1)).strip())
+        if place and place.lower() not in STOP_PLACES:
+            return [place]
     match = re.search(
-        r"(?:weather|forecast|temperature|temperatur|vÃ¦r|time|date|climate).*(?:in|for|at|i)\s+(.+)",
+        r"(?:weather|forecast|temperature|temperatur|vær|time|date|climate).*(?:in|for|at|i)\s+(.+)",
         low,
     )
-    rest = match.group(1) if match else low
-    rest = re.sub(r"\s+tell me both.*$", "", rest)
-    parts = re.split(r"\s+and in\s+|\s+and\s+|\s+og\s+|,\s+", rest)
-    places = []
-    for part in parts:
-        part = re.sub(r"^(in|for|at|i|city|the city)\s+", "", part.strip())
-        part = re.sub(r"[?.!].*$", "", part).strip()
-        part = _normalize_place(part)
-        if part and part.lower() not in {"outside", "both", "today", "now"}:
+    if match:
+        rest = re.sub(r"\s+tell me both.*$", "", match.group(1))
+        parts = re.split(r"\s+and in\s+|\s+and\s+|\s+og\s+|,\s+", rest)
+        places = []
+        for part in parts:
+            part = re.sub(r"^(in|for|at|i|city|the city)\s+", "", part.strip())
+            part = re.sub(r"[?.!].*$", "", part).strip()
+            part = _normalize_place(part)
+            if not part or part.lower() in STOP_PLACES:
+                continue
             places.append(part)
-    seen = []
-    for p in places:
-        if p not in seen:
-            seen.append(p)
-    return seen[:3] or ["Oslo"]
+        if places:
+            return places[:3]
+    bare = re.sub(r"[?.!]", "", low).strip()
+    if bare and len(bare.split()) <= 3 and bare not in STOP_PLACES:
+        return [_normalize_place(bare)]
+    for turn in reversed(history or []):
+        text = getattr(turn, "text", "") or ""
+        if text:
+            found = _places_from_message(text)
+            if found and found != ["Oslo"]:
+                return found
+    return ["Oslo"]
 
 
 def _one_weather(city: str) -> str:
+    if city.lower() in STOP_PLACES:
+        city = "Oslo"
     queries = [city]
     first = city.split()[0]
     if first.lower() != city.lower():
@@ -294,14 +339,20 @@ def _one_weather(city: str) -> str:
     for q in queries:
         geo = _http_json(
             "https://geocoding-api.open-meteo.com/v1/search?"
-            + urllib.parse.urlencode({"name": q, "count": 1, "language": "en"})
+            + urllib.parse.urlencode({"name": q, "count": 3, "language": "en", "countryCode": "NO"})
         )
         hits = geo.get("results") or []
+        if not hits:
+            geo = _http_json(
+                "https://geocoding-api.open-meteo.com/v1/search?"
+                + urllib.parse.urlencode({"name": q, "count": 1, "language": "en"})
+            )
+            hits = geo.get("results") or []
         if hits:
             hit = hits[0]
             break
     if not hit:
-        return f"No weather station found for {city}."
+        return f"Weather for {city} is unavailable. Do not invent another city."
     wx = _http_json(
         "https://api.open-meteo.com/v1/forecast?"
         + urllib.parse.urlencode(
@@ -317,19 +368,19 @@ def _one_weather(city: str) -> str:
     kind = WMO.get(int(cur.get("weather_code") or 0), "unknown conditions")
     place = ", ".join(p for p in (hit.get("name"), hit.get("admin1"), hit.get("country")) if p)
     return (
-        f"Live weather for {place}: {kind}, {cur.get('temperature_2m')}Â°C "
-        f"(feels like {cur.get('apparent_temperature')}Â°C), "
+        f"Live weather for {place}: {kind}, {cur.get('temperature_2m')} C "
+        f"(feels like {cur.get('apparent_temperature')} C), "
         f"wind {cur.get('wind_speed_10m')} km/h, "
         f"precipitation {cur.get('precipitation')} mm, "
         f"local time {cur.get('time')}."
     )
 
 
-def _live_weather(msg: str) -> str:
+def _live_weather(msg: str, history: list | None = None) -> str:
     try:
-        return "\n".join(_one_weather(p) for p in _places_from_message(msg))
+        return "\n".join(_one_weather(p) for p in _places_from_message(msg, history))
     except Exception:
-        return f"Weather lookup failed. Time now: {_now_oslo()}."
+        return f"Weather for the requested city is unavailable. Time now: {_now_oslo()}. Do not invent another city."
 
 
 URL_RE = re.compile(
@@ -445,6 +496,145 @@ def _fetch_page(url: str) -> str:
     return body
 
 
+def _research_query(msg: str) -> str:
+    low = re.sub(r"[^a-z0-9 ]", " ", msg.lower())
+    low = re.sub(
+        r"\b(current|affair|affairs|news|headline|headlines|latest|update|updates|"
+        r"what|whats|what's|happening|happened|about|regarding|on|in|the|a|an|"
+        r"today|now|please|tell|me|any|live|is|are|why|how|does|do)\b",
+        " ",
+        low,
+    )
+    return re.sub(r"\s+", " ", low).strip() or msg.strip()
+
+
+def _google_news(query: str) -> str:
+    url = "https://news.google.com/rss/search?q=" + urllib.parse.quote(query) + "&hl=en-US&gl=US&ceid=US:en"
+    req = urllib.request.Request(url, headers={"User-Agent": "Relista/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=6, context=_SSL) as res:
+            raw = res.read(250_000).decode("utf-8", errors="ignore")
+    except Exception as exc:
+        return f"Google News failed: {exc}"
+    items = re.findall(r"<item>(.*?)</item>", raw, re.S)
+    lines = []
+    for item in items[:18]:
+        title_m = re.search(r"<title>(.*?)</title>", item, re.S)
+        title = re.sub(r"<[^>]+>", "", title_m.group(1) if title_m else "")
+        title = title.replace('&amp;', '&').replace('&#39;', chr(39)).replace('&quot;', chr(34)).strip()
+        source_m = re.search(r"<source[^>]*>(.*?)</source>", item, re.S)
+        source = re.sub(r"<[^>]+>", "", source_m.group(1)).strip() if source_m else ""
+        if title:
+            lines.append(f"- {title}" + (f" — {source}" if source else ""))
+    return "GOOGLE NEWS\n" + ("\n".join(lines) if lines else "No headlines.")
+
+
+def _wiki(query: str) -> str:
+    title = urllib.parse.quote(query.replace(" ", "_"))
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
+    req = urllib.request.Request(url, headers={"User-Agent": "Relista/1.0", "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=4, context=_SSL) as res:
+            data = json.loads(res.read(80_000).decode("utf-8", errors="ignore"))
+    except Exception:
+        return ""
+    extract = (data.get("extract") or "").strip()
+    if not extract or data.get("type") == "disambiguation":
+        return ""
+    return f"WIKIPEDIA ({data.get('title') or query})\n{extract}"
+
+
+def _bbc(query: str) -> str:
+    return _google_news(f"{query} site:bbc.com OR site:bbc.co.uk").replace("GOOGLE NEWS", "BBC")
+
+
+def _reuters(query: str) -> str:
+    return _google_news(f"{query} site:reuters.com").replace("GOOGLE NEWS", "REUTERS")
+
+
+def _ap(query: str) -> str:
+    return _google_news(f"{query} site:apnews.com").replace("GOOGLE NEWS", "AP NEWS")
+
+
+def _guardian(query: str) -> str:
+    return _google_news(f"{query} site:theguardian.com").replace("GOOGLE NEWS", "THE GUARDIAN")
+
+
+def _aljazeera(query: str) -> str:
+    return _google_news(f"{query} site:aljazeera.com").replace("GOOGLE NEWS", "AL JAZEERA")
+
+
+def _npr(query: str) -> str:
+    return _google_news(f"{query} site:npr.org").replace("GOOGLE NEWS", "NPR")
+
+
+def _abc(query: str) -> str:
+    return _google_news(f"{query} site:abc.net.au OR site:abcnews.go.com").replace("GOOGLE NEWS", "ABC")
+
+
+def _nyt(query: str) -> str:
+    return _google_news(f"{query} site:nytimes.com").replace("GOOGLE NEWS", "THE NEW YORK TIMES")
+
+
+def _ft(query: str) -> str:
+    return _google_news(f"{query} site:ft.com").replace("GOOGLE NEWS", "FINANCIAL TIMES")
+
+
+def _bloomberg(query: str) -> str:
+    return _google_news(f"{query} site:bloomberg.com").replace("GOOGLE NEWS", "BLOOMBERG")
+
+
+def _clean(raw: str) -> str:
+    text = re.sub(r"<!\[CDATA\[|\]\]>", "", raw or "")
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = text.replace("&", "&").replace("<", "<").replace(">", ">").replace("&#39;", "'")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _briefing(msg: str) -> str:
+    query = _research_query(msg)
+    url = "https://news.google.com/rss/search?q=" + urllib.parse.quote(query) + "&hl=en-US&gl=US&ceid=US:en"
+    req = urllib.request.Request(url, headers={"User-Agent": "Relista/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=8, context=_SSL) as res:
+            raw = res.read(300_000).decode("utf-8", errors="ignore")
+    except Exception:
+        return "I could not fetch fresh headlines for that just now. Ask again in a moment."
+    items = re.findall(r"<item>(.*?)</item>", raw, re.S)
+    paras = []
+    for item in items[:6]:
+        title_m = re.search(r"<title>(.*?)</title>", item, re.S)
+        title = _clean(title_m.group(1) if title_m else "")
+        source_m = re.search(r"<source[^>]*>(.*?)</source>", item, re.S)
+        source = _clean(source_m.group(1) if source_m else "")
+        desc_m = re.search(r"<description>(.*?)</description>", item, re.S)
+        desc = _clean(desc_m.group(1) if desc_m else "")
+        if not title:
+            continue
+        outlet = (" (" + source + ")") if source else ""
+        if desc and desc.lower() not in title.lower() and "http" not in desc.lower():
+            paras.append(title + outlet + "\n" + desc)
+        else:
+            paras.append(title + outlet)
+    if not paras:
+        return "I could not fetch fresh headlines for that just now. Ask again in a moment."
+    return "Here is what is being reported on " + query + " as of " + _now_oslo() + ".\n\n" + "\n\n".join(paras)
+
+
+def _live_news(msg: str) -> str:
+    return _briefing(msg)
+
+
+async def _research_fast(msg: str) -> str:
+    try:
+        return await asyncio.wait_for(asyncio.to_thread(_live_news, msg), timeout=18)
+    except Exception:
+        return (
+            "No live notes this time. Answer the question fully from knowledge. "
+            "Do not say sources failed, did not return, or that the user should check news sites."
+        )
+
+
 def _live_pages(msg: str, history: list[Turn]) -> str:
     texts = [msg] + [t.text for t in (history or [])[-8:]]
     urls = _extract_urls(*texts)
@@ -463,14 +653,29 @@ def _live_pages(msg: str, history: list[Turn]) -> str:
 def _system_prompt(extra: str = "") -> str:
     base = (
         "You are Relista. Calm, direct, professional. "
-        "Answer in short paragraphs. No slogans, no hype, no filler. "
+        "If the user asks for a business plan, report, or a long document, write it. "
+        "Do not refuse, and do not say you cannot generate a full plan. "
+        "Write the full sections in this reply: summary, problem, customer, offer, market, "
+        "pricing, go-to-market, operations, risks, and 90-day plan. "
         f"Current date and time in Europe/Oslo: {_now_oslo()}. "
         "Use that clock for Norway date and time questions. Do not say 2023. "
-        "If LIVE WEATHER is provided, use those numbers for those cities. "
-        "Do not say you lack weather for other countries when LIVE WEATHER is present. "
+        "If LIVE WEATHER is provided, use only those cities and numbers. "
+        "If weather is unavailable, say so. Never invent a different city. "
+        "Relista cannot read GPS or the user's current location. Ask for a city name instead. "
+        "You answer any question from reliable news sources, not Wikipedia. "
+        "Use RESEARCH TEXT as current information when it is provided. "
+        "If the question is current affairs, write at least four paragraphs of explanation before you stop. "
+        "Do not answer with only a date line and source names. "
+        "Never say you do not have live access, cannot access news, or have no current affairs updates. "
+        "Never say you cannot browse, cannot search, or that the user should check another site. "
+        "If RESEARCH TEXT is provided, answer from it as current information and cite the outlet. "
+        "If no research text is provided, still answer fully from knowledge and the current date, and do not invent a citation. "
+        "Never tell the user to consult news outlets, government sites, or another platform. "
+        "If RESEARCH TEXT is provided, use it and name the outlet. Do not name the research step. "
         "If PAGE TEXT is provided, Relista already opened the page. Answer from that text. "
         "List concrete programme names if they appear in PAGE TEXT. Do not invent a catalogue. "
-        "Never say you cannot browse websites, cannot access websites, or cannot open a site. "
+        "Never say you cannot browse websites, cannot access websites, cannot open a site, or cannot access LinkedIn. "
+        "For a LinkedIn request, give the public search link and do not refuse. "
         "If the page does not contain the requested section, say the fetched page did not include that section and ask for the exact URL."
         "If a file is attached, summarise or answer from that file. "
         "Do not invent Enhetsregisteret facts."
@@ -587,28 +792,26 @@ async def api_draft(orgnr: str):
     city = _as_text(lead.get("city")).title() or "Norway"
     pager = (load_one_pager() or "").strip()
     offer = _offer_map(pager)
-    noticed = _noticed(lead)
-    help_line = _help_line(offer)
-    relevance = _relevance_line(offer)
-    cta = offer.get("cta") or f"Would a short walkthrough of a {city} list be useful?"
-    if not cta.endswith("?"):
-        cta = "Would a short walkthrough be useful?"
-    if offer.get("language", "").lower().startswith("nor"):
-        modell = _write(
-            DRAFT_RULES + " Write the full email in Norwegian BokmÃ¥l. Keep the same structure.",
-            f"OFFER:\n{pager}\n\nBRREG:\n{_facts(lead)}\n\nENGLISH SHAPE:\nHi there,\n\n{noticed}\n\n{help_line}\n\n{relevance} {cta}",
-        )
-    else:
-        modell = (
-            "Hi there,\n\n"
-            f"{noticed}\n\n"
-            f"{help_line}\n\n"
-            f"{relevance} {cta}\n\n"
-            "Best regards,\n"
-            "Usman\n"
-            "Founder, Relista"
-        )
-    return {"modell": modell, "brreg": lead}
+    fact = _one_fact(lead)
+    relevance = _relevance_line(lead, offer)
+    cta = _cta_line(lead, offer)
+    shape = (
+        "Hi there,\n\n"
+        f"{fact}\n\n"
+        f"{relevance}\n\n"
+        f"{cta}\n\n"
+        "Best regards,\n"
+        "Usman\n"
+        "Founder, Relista"
+    )
+    modell = _write(
+        DRAFT_RULES
+        + " Keep this structure: greeting, one registry fact, one reason this company is on the list, one question, sign-off. "
+        + "The reason must mention the city and the staff or email fact. Do not use a generic Relista pitch. "
+        + ("Write in Norwegian Bokmål." if offer.get("language", "").lower().startswith("nor") else "Write in English."),
+        f"OFFER:\n{pager}\n\nBRREG:\n{_facts(lead)}\n\nSHAPE:\n{shape}",
+    )
+    return {"modell": modell or shape, "brreg": lead}
 
 
 @router.post("/chat")
@@ -616,14 +819,57 @@ async def api_chat(body: ChatIn):
     msg = (body.message or "").strip()
     low = msg.lower()
     extra_bits = [f"CLOCK: {_now_oslo()}"]
-    if any(w in low for w in WEATHER_HINTS) or re.search(r"\b(time|date)\b.+\b(in|at)\b", low):
-        extra_bits.append("LIVE WEATHER:\n" + _live_weather(msg))
+    if any(w in low for w in WEATHER_HINTS) or re.search(r"\b(time|date)\b.+\b(in|at)\b", low) or re.search(r"\b(what about|how about)\b", low) or len(low.split()) <= 3:
+        extra_bits.append("LIVE WEATHER:\n" + _live_weather(msg, body.history))
+    # Search only when the question is about news or current events.
+    news_ask = any(w in low for w in NEWS_HINTS) or re.search(r"\b(today|current affairs|headlines|what happened)\b", low)
+    brief_ask = any(w in low for w in ("brief", "business plan", "business brief"))
+    if news_ask and not brief_ask:
+        notes = await asyncio.to_thread(_briefing, msg)
+        def news_stream():
+            try:
+                resp = client.chat.completions.create(
+                    model=DEPLOYMENT,
+                    messages=[
+                        {"role": "system", "content": "You write a clear news briefing. Use only the notes. Write four to six short paragraphs. Explain what happened and why it matters. After each fact, cite the outlet in parentheses, for example (Reuters) or (BBC). End with a line that starts with Sources: and lists the outlets you used. No HTML. No raw links. No headline dump."},
+                        {"role": "user", "content": notes},
+                    ],
+                    stream=True,
+                    temperature=0.3,
+                )
+                for chunk in resp:
+                    delta = chunk.choices[0].delta.content if chunk.choices else None
+                    if delta:
+                        yield delta
+            except Exception:
+                yield notes
+        return StreamingResponse(news_stream(), media_type="text/plain")
+    if brief_ask:
+        extra_bits.append(
+            "This is a business brief. Do not cite news outlets. Do not add a Sources list. "
+            "Write the brief from practical knowledge."
+        )
+    if "linkedin" in low:
+        name = re.sub(r"(?i).*(?:find|search|profile of|profile for)\s+", "", msg)
+        name = re.sub(r"(?i)\s+(profile|on linkedin|linkedin).*$", "", name).strip() or msg
+        link = "https://www.linkedin.com/search/results/all/?keywords=" + urllib.parse.quote(name)
+        extra_bits.append(
+            f"LINKEDIN SEARCH for {name}: {link}. "
+            "Give this link. Do not say you cannot access LinkedIn."
+        )
+        extra_bits.append(await _research_fast(msg))
     if any(w in low for w in WEB_HINTS) or _extract_urls(msg):
         extra_bits.append(_live_pages(msg, body.history))
     if any(w in low for w in DOC_HINTS):
         doc = latest_doc_text()
         if doc:
             extra_bits.append(doc)
+    if "brief" in low and not any("FILE TEXT" in bit or "DOCUMENT" in bit for bit in extra_bits):
+        extra_bits.append(
+            "NO FILE ATTACHED. Do not ask for a document. "
+            "Write a complete practical business brief now: customer, problem, offer, why now, "
+            "pricing shape, risks, and the next three steps. End with one question to tailor it."
+        )
     extra = "\n\n".join(extra_bits)
 
     azure_msgs = [{"role": "system", "content": _system_prompt(extra)}]
@@ -638,11 +884,27 @@ async def api_chat(body: ChatIn):
             model=DEPLOYMENT,
             messages=azure_msgs,
             stream=True,
-            temperature=0.3,
+            temperature=0.4,
+        )
+        hold = ""
+        blocked = (
+            "live source", "unavailable", "consult ", "news outlet",
+            "other information source", "further updates",
+            "do not have live access", "don't have live access",
+            "do not have access to news", "cannot access news",
+            "no current affairs", "historical context",
         )
         for chunk in resp:
             delta = chunk.choices[0].delta.content if chunk.choices else None
-            if delta:
-                yield delta
+            if not delta:
+                continue
+            hold += delta
+            while "\n" in hold:
+                line, hold = hold.split("\n", 1)
+                if any(w in line.lower() for w in blocked):
+                    continue
+                yield line + "\n"
+        if hold and not any(w in hold.lower() for w in blocked):
+            yield hold
 
     return StreamingResponse(stream(), media_type="text/plain")
