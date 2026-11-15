@@ -3,12 +3,17 @@ From Norwegian company records to qualified prospecting lists.
 Relista helps businesses discover and evaluate potential B2B customers using data from Norway’s Brønnøysund Register.
 Instead of manually browsing company records, users select a city and sector and receive a weekly pack of approximately 15 companies, ranked by prospect fit.
 How Relista Works
+
 flowchart LR
     A["City + Sector"] --> B["Live Brønnøysund Data"]
     B --> C["Weekly Pack<br/>~15 Companies"]
     C --> D["Fit Ranking"]
     D --> E["Company Intelligence"]
     E --> F["Review & Draft"]
+
+
+
+
 What Makes Relista Different?
 * Curated weekly packs: A defined number of prospects, ranked by fit rather than arbitrary registry order.
 * Fit-based ranking: Uses available signals including company age, size and email quality.
