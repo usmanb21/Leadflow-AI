@@ -1,30 +1,37 @@
 Relista
-From Norwegian company records to qualified prospecting lists.
-Relista helps businesses discover and evaluate potential B2B customers using data from Norway’s Brønnøysund Register.
-Instead of manually browsing company records, users select a city and sector and receive a weekly pack of approximately 15 companies, ranked by prospect fit.
-How Relista Works
-
+Turn company registry data into your next prospecting list.
+Relista transforms Norwegian company records into curated, ranked B2B prospecting packs.
+Choose a city and business sector. Relista discovers relevant companies, ranks them using available fit signals and presents company intelligence to help you decide which prospects deserve attention.
+ 
+⸻
+ 
+How it works
 flowchart LR
-    A["City + Sector"] --> B["Live Brønnøysund Data"]
-    B --> C["Weekly Pack<br/>~15 Companies"]
-    C --> D["Fit Ranking"]
-    D --> E["Company Intelligence"]
-    E --> F["Review & Draft"]
-
-
-
-
-What Makes Relista Different?
-* Curated weekly packs: A defined number of prospects, ranked by fit rather than arbitrary registry order.
-* Fit-based ranking: Uses available signals including company age, size and email quality.
-* Company intelligence: Helps assess whether a company matches the intended customer profile.
-* Trust labels: Separates verified registry facts, available contact information and AI-generated assessments.
-* Human-reviewed decisions: Uncertain intelligence should abstain rather than invent answers.
+    A["01 · Select market<br/>City + sector"] --> B["02 · Discover<br/>Brønnøysund data"]
+    B --> C["03 · Build pack<br/>~15 companies"]
+    C --> D["04 · Rank<br/>Prospect fit"]
+    D --> E["05 · Evaluate<br/>Company intelligence"]
+    E --> F["06 · Prepare<br/>Review & outreach drafts"]
+Core capabilities
+Feature	Purpose
+Weekly prospect packs	A defined selection of companies for a saved market
+Fit ranking	Ranking based on available company and contact signals
+Company intelligence	Context to help evaluate potential customer fit
+P0 trust labels	Distinguishes verified facts from uncertain or AI-generated assessments
+Outreach drafts	Helps prepare prospect communication
+Manual outcomes	Keeps prospecting decisions under human control
+Built around reliable information
+Relista follows three principles:
+* Evidence first: Use available company registry facts as the foundation.
+* No fabricated intelligence: Abstain when evidence is insufficient.
+* Human control: AI assists evaluation; users make the final prospecting decisions.
 Technology
 * Frontend: React 19, Vite, Tailwind CSS
 * Backend: Python, FastAPI
-* Company data: Brønnøysundregistrene
-* AI: Azure OpenAI
-Project Status
-Relista is a private MVP under active development.
+* Company data: Brønnøysundregistrene — Enhetsregisteret
+* AI integration: Azure OpenAI
+ 
+⸻
+ 
+Project: Private MVP under active development.
 Relista — Less searching. Better prospecting.
