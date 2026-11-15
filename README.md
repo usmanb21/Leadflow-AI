@@ -7,19 +7,18 @@ Relista turns official Norwegian company-registry data into curated B2B prospect
 Relista does not send email and does not invent contacts.
 
 
-## How it works
 
-```mermaid
-flowchart LR
-    A["01 · Select market<br/>City + sector"]
-    B["02 · Discover<br/>Live Brønnøysund data"]
-    C["03 · Build pack<br/>~15 companies"]
-    D["04 · Rank<br/>Prospect fit"]
-    E["05 · Evaluate<br/>Company intelligence"]
-    F["06 · Prepare<br/>Review & outreach drafts"]
+## Core capabilities
 
-    A --> B --> C --> D --> E --> F
-```
+| Capability | Purpose |
+|---|---|
+| ![Weekly packs](https://img.shields.io/badge/Weekly_Packs-2563EB?style=for-the-badge) | Curated companies for a saved market |
+| ![Fit ranking](https://img.shields.io/badge/Fit_Ranking-0891B2?style=for-the-badge) | Ranks prospects using available fit signals |
+| ![Company intelligence](https://img.shields.io/badge/Intelligence-7C3AED?style=for-the-badge) | Evaluates potential customer fit |
+| ![Trust labels](https://img.shields.io/badge/Trust_Labels-0F766E?style=for-the-badge) | Separates verified facts from AI assessments |
+| ![Outreach drafts](https://img.shields.io/badge/Outreach-D97706?style=for-the-badge) | Editable prospecting email drafts |
+| ![Manual outcomes](https://img.shields.io/badge/Human_Control-475569?style=for-the-badge) | Keeps prospecting decisions under human control |
+
 
 
 ## Core capabilities
