@@ -19,19 +19,6 @@ Relista does not send email and does not invent contacts.
 | ![Outreach drafts](https://img.shields.io/badge/Outreach-D97706?style=for-the-badge) | Editable prospecting email drafts |
 | ![Manual outcomes](https://img.shields.io/badge/Human_Control-475569?style=for-the-badge) | Keeps prospecting decisions under human control |
 
-
-
-## Core capabilities
-
-| Capability | Purpose |
-|---|---|
-| Weekly prospect packs | Curated list of companies for a saved market |
-| Fit ranking | Ranks by email quality, staff band, and company age |
-| Company intelligence | ICP match High / Medium / Low with reasons |
-| P0 trust labels | Separates Brreg facts from AI interpretation |
-| Outreach drafts | Editable first emails · copy only |
-| Manual outcomes | Status and results stay under human control |
-
 ## Product principles
 
 - **Evidence first** — Brønnøysundregistrene is the source of truth  
